@@ -6,9 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### テスト環境
 ```bash
-npm test                  # 全テストを実行
-npm run test:watch        # ファイル変更を監視してテストを自動実行
-npm run test:coverage     # カバレッジレポート付きでテストを実行
+npm test                           # 全テストを実行
+npm run test:watch                 # ファイル変更を監視してテストを自動実行
+npm run test:coverage              # カバレッジレポート付きでテストを実行
+
+# 個別テスト実行
+npm test tests/ChecklistApp.test.js              # メインアプリケーション
+npm test tests/ChecklistDataManager.test.js      # データ管理層
+npm test tests/ChecklistUIManager.test.js        # UI管理層
+npm test tests/ChecklistListManager.test.js      # リスト管理層
+npm test tests/ChecklistItemManager.test.js      # 項目管理層
+npm test tests/config.test.js                    # 設定
+npm test tests/constants.test.js                 # 定数
 ```
 
 ### ローカル開発サーバー
@@ -32,53 +41,63 @@ GitHub Pagesは自動的にmainブランチからデプロイされる
 - **データ保存**: localStorage
 - **ホスティング**: GitHub Pages
 - **対応環境**: モバイルブラウザ
+- **テスト**: Jest + JSDOM
 
-### ファイル構成
-```
-/
-├── index.html           # メインHTML（3つの画面を含む）
-├── style.css            # モバイルファーストのレスポンシブデザイン
-├── script.js            # ChecklistAppクラス（全機能を含む）
-├── tests/
-│   ├── checklist-app.test.js  # メインテストファイル（42テストケース）
-│   └── setup.js               # Jest/JSDOM設定とモック
-├── coverage/            # テストカバレッジレポート（HTML形式）
-└── package.json         # 依存関係とJest設定
-```
+### モジュラーアーキテクチャ
 
-### アプリケーション構造
+アプリケーションは責務分離の原則に従って以下の管理クラスに分割されている：
 
-#### 単一ページアプリケーション（SPA）
-- 3つの画面が1つのHTMLファイルに存在
-- `screen` クラスと `hidden` クラスでの画面切り替え
-- `listScreen` → `detailScreen` → `editScreen` の遷移
+#### `ChecklistApp` (src/ChecklistApp.js)
+メインアプリケーションクラス。各管理クラスを統合してアプリケーション全体を制御。
+- 画面遷移の制御
+- 各管理クラスの協調動作
+- イベントハンドリングの統合
 
-#### ChecklistAppクラス（script.js）
-メインアプリケーションクラスで以下の責務を持つ：
+#### `ChecklistDataManager` (src/ChecklistDataManager.js)
+データ管理層。localStorage操作、データ保存・読み込み、ID生成、データバリデーションを担当。
+- `loadData()`, `saveData()`: localStorage操作
+- `generateId()`: 一意ID生成
+- `createListData()`, `createItemData()`: データ構造作成
+- `validateListName()`, `filterValidItems()`: バリデーション
 
-**データ管理**
-- `lists`: チェックリストの配列
-- `currentListId`: 現在選択中のリストID
-- `saveData()`: localStorageへのデータ永続化
+#### `ChecklistUIManager` (src/ChecklistUIManager.js)
+UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバインディング、プログレスバー更新を担当。
+- `showListScreen()`, `showDetailScreen()`, `showEditScreen()`: 画面遷移
+- `bindEvents()`: イベントリスナーのバインド
+- `updateProgress()`: プログレスバー更新
+- DOM要素の管理とヘルパーメソッド
 
-**画面管理**
-- `showListScreen()`: リスト一覧画面
-- `showDetailScreen()`: リスト詳細画面（チェック機能）
-- `showEditScreen()`: リスト編集画面
+#### `ChecklistListManager` (src/ChecklistListManager.js)
+リスト管理層。リストCRUD操作、リスト描画、検索・フィルタリングを担当。
+- `createList()`, `updateList()`, `deleteList()`: リストCRUD
+- `renderLists()`: リスト一覧描画
+- `searchLists()`, `filterByProgress()`: 検索・フィルタリング
+- `getStatistics()`: 統計情報取得
 
-**CRUD操作**
-- `renderLists()`: リスト一覧の描画
-- `renderItems()`: チェック項目の描画
-- `saveList()`: リストの保存（新規作成・更新）
-- `deleteList()`: リストの削除
+#### `ChecklistItemManager` (src/ChecklistItemManager.js)
+項目管理層。項目CRUD操作、項目チェック状態管理、項目描画・編集を担当。
+- `renderItems()`, `renderEditItems()`: 項目描画
+- `createItem()`, `removeItem()`, `resetAllItems()`: 項目操作
+- `getCheckedItems()`, `searchItems()`: 項目フィルタリング
+- `calculateCompletionRate()`: 完了率計算
 
-#### データ構造
+### 設定・定数管理
+
+#### `config.js` (src/config.js)
+アプリケーション設定を管理。UI設定、バリデーション設定、機能設定、デバッグ設定を含む。
+- `getConfig()`, `setConfig()`: 設定値の取得・設定
+- `validateConfig()`: 設定の妥当性チェック
+
+#### `constants.js` (src/constants.js)
+アプリケーション定数を管理。CSS クラス名、DOM要素ID、メッセージ、アクション、イベント等を定義。
+
+### データ構造
 ```javascript
 {
   lists: [
     {
       id: "uuid",
-      name: "リスト名",
+      name: "リスト名", 
       items: [
         { id: "uuid", text: "項目名", checked: false }
       ],
@@ -89,39 +108,52 @@ GitHub Pagesは自動的にmainブランチからデプロイされる
 }
 ```
 
+### 単一ページアプリケーション（SPA）
+- 3つの画面が1つのHTMLファイルに存在
+- `screen` クラスと `hidden` クラスでの画面切り替え
+- `listScreen` → `detailScreen` → `editScreen` の遷移
+
 ### モバイル対応
 - `viewport` メタタグでモバイル最適化
 - CSS Grid/Flexboxによるレスポンシブレイアウト
 - タッチ操作に適した大きなボタンサイズ
 - 480px以下での専用スタイル
-
-### 主要機能
-1. **チェックリスト管理**: 複数リストの作成・編集・削除
-2. **進捗表示**: プログレスバーでの完了率表示
-3. **一括リセット**: 全項目を未チェック状態にリセット
-4. **データ永続化**: ローカルストレージでの自動保存
+- `overflow-x: hidden`による横スクロール防止（スワイプ時の画面ズレ対策）
 
 ## テスト環境
 
 ### テスト構成
 - **Jest**: テストフレームワーク（JSDOM環境）
-- **テストカバレッジ**: 94.77% statements, 91.42% branches, 82.5% functions, 99.25% lines
-- **総テスト数**: 42個のテストケース
+- **総テスト数**: 201個のテストケース（7つのテストスイート）
+- **高いテストカバレッジ**: 各管理クラスが包括的にテスト済み
 
 ### テストファイル構造
-1. **データ管理機能**: localStorage、ID生成、データ保存
-2. **リスト管理機能**: CRUD操作、バリデーション、描画
-3. **項目管理機能**: チェック、追加、削除、一括リセット
-4. **進捗計算機能**: プログレスバー更新
-5. **画面遷移機能**: SPA画面切り替え、編集モード制御
-6. **エッジケース**: エラーハンドリング、境界値、状態整合性、UI状態
+各管理クラスに対応するテストファイル：
+1. `ChecklistApp.test.js`: メインアプリケーション統合テスト
+2. `ChecklistDataManager.test.js`: データ管理機能テスト
+3. `ChecklistUIManager.test.js`: UI管理機能テスト
+4. `ChecklistListManager.test.js`: リスト管理機能テスト
+5. `ChecklistItemManager.test.js`: 項目管理機能テスト
+6. `config.test.js`: 設定管理テスト
+7. `constants.test.js`: 定数管理テスト
 
 ### localStorageモック
 - `tests/setup.js`でJSDOM環境のlocalStorageをモック化
-- モジュールキャッシュクリアによるテスト分離
-- 各テストでのモック状態リセット
+- 各テストでのモック状態リセットによるテスト分離
+- 各管理クラスは依存性注入でテスト可能
 
-### 開発時の注意点
-- テスト実行前に必ずlocalStorageモックが適切に設定されていることを確認
-- 新機能追加時はTDDアプローチ（RED→GREEN→REFACTOR）を厳守
-- `ChecklistApp`クラスのメソッドは全てテスト対象
+### TDD開発アプローチ
+新機能追加時は以下の手順を厳守：
+1. **RED**: 失敗するテストを先に作成
+2. **GREEN**: テストを通すための最小限の実装
+3. **REFACTOR**: コード品質向上（テスト通過を維持）
+
+### ブラウザ環境での依存関係
+ブラウザ環境では、各管理クラスはscriptタグで順序通りに読み込む必要がある：
+```html
+<script src="src/ChecklistDataManager.js"></script>
+<script src="src/ChecklistUIManager.js"></script>
+<script src="src/ChecklistListManager.js"></script>
+<script src="src/ChecklistItemManager.js"></script>
+<script src="src/ChecklistApp.js"></script>
+```
