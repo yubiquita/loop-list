@@ -1,0 +1,294 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: #2196F3;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.add-list-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.add-list-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.main {
+    position: relative;
+    min-height: calc(100vh - 68px);
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    transition: transform 0.3s ease;
+}
+
+.screen.hidden {
+    transform: translateX(100%);
+}
+
+.list-container {
+    padding: 20px;
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.list-item:hover {
+    background: #f8f9fa;
+    border-color: #2196F3;
+}
+
+.list-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.list-info p {
+    font-size: 14px;
+    color: #666;
+}
+
+.list-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.delete-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    background: #f44336;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.detail-header, .edit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: #2196F3;
+    color: white;
+}
+
+.back-btn, .cancel-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
+}
+
+.edit-btn, .save-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
+}
+
+.progress-bar {
+    position: relative;
+    height: 8px;
+    background: #e0e0e0;
+    margin: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #4CAF50;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.progress-text {
+    position: absolute;
+    top: 12px;
+    right: 20px;
+    font-size: 12px;
+    color: #666;
+}
+
+.item-list {
+    padding: 0 20px;
+}
+
+.check-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.check-item:last-child {
+    border-bottom: none;
+}
+
+.check-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    cursor: pointer;
+}
+
+.check-item label {
+    flex: 1;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.check-item.checked label {
+    color: #999;
+    text-decoration: line-through;
+}
+
+.action-buttons {
+    padding: 20px;
+    text-align: center;
+}
+
+.reset-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    background: #FF9800;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.edit-form {
+    padding: 20px;
+}
+
+.list-name-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.edit-items {
+    margin-bottom: 20px;
+}
+
+.edit-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.edit-item input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.edit-item button {
+    margin-left: 8px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    background: #f44336;
+    color: white;
+    cursor: pointer;
+}
+
+.add-item-btn {
+    width: 100%;
+    padding: 12px;
+    border: 1px dashed #ddd;
+    border-radius: 4px;
+    background: transparent;
+    color: #666;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.add-item-btn:hover {
+    background: #f8f9fa;
+}
+
+@media (max-width: 480px) {
+    .app {
+        max-width: 100%;
+    }
+    
+    .header {
+        padding: 12px 16px;
+    }
+    
+    .list-container {
+        padding: 16px;
+    }
+    
+    .item-list {
+        padding: 0 16px;
+    }
+    
+    .action-buttons {
+        padding: 16px;
+    }
+}
