@@ -783,5 +783,39 @@ describe('ChecklistApp', () => {
                 expect(ChecklistApp.name).toBe('ChecklistApp');
             });
         });
+
+        describe('CSSルールのテスト', () => {
+            test('bodyにoverflow-x: hiddenスタイルが設定可能である', () => {
+                const body = document.body;
+                body.style.overflowX = 'hidden';
+                expect(body.style.overflowX).toBe('hidden');
+            });
+
+            test('htmlにoverflow-x: hiddenスタイルが設定可能である', () => {
+                const html = document.documentElement;
+                html.style.overflowX = 'hidden';
+                expect(html.style.overflowX).toBe('hidden');
+            });
+
+            test('mainコンテナにoverflow: hiddenスタイルが設定可能である', () => {
+                const main = document.querySelector('.main');
+                expect(main).toBeTruthy();
+                main.style.overflow = 'hidden';
+                expect(main.style.overflow).toBe('hidden');
+            });
+
+            test('CSSファイルに必要なoverflowルールが含まれている', () => {
+                // CSSファイルの内容を文字列として読み込んでテスト
+                const fs = require('fs');
+                const path = require('path');
+                const cssPath = path.join(__dirname, '..', 'style.css');
+                const cssContent = fs.readFileSync(cssPath, 'utf8');
+                
+                expect(cssContent).toContain('html, body');
+                expect(cssContent).toContain('overflow-x: hidden');
+                expect(cssContent).toContain('.main');
+                expect(cssContent).toContain('overflow: hidden');
+            });
+        });
     });
 });
