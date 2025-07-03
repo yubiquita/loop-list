@@ -23,7 +23,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 16px 20px;
-    background: #2196F3;
+    background: #689F38;
     color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -87,7 +87,7 @@ body {
 
 .list-item:hover {
     background: #f8f9fa;
-    border-color: #2196F3;
+    border-color: #689F38;
 }
 
 .list-info h3 {
@@ -121,7 +121,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 16px 20px;
-    background: #2196F3;
+    background: #689F38;
     color: white;
 }
 
@@ -154,7 +154,7 @@ body {
 
 .progress-fill {
     height: 100%;
-    background: #4CAF50;
+    background: #8BC34A;
     transition: width 0.3s ease;
     width: 0%;
 }
