@@ -1,0 +1,28 @@
+{
+  "name": "loop-list",
+  "version": "1.0.0",
+  "description": "日常用途の繰り返し使用チェックリストを管理するシンプルなWebアプリケーション",
+  "main": "script.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "serve": "npx http-server -p 8080 -c-1"
+  },
+  "keywords": ["checklist", "todo", "web-app"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "collectCoverageFrom": [
+      "script.js",
+      "!node_modules/**"
+    ],
+    "coverageReporters": ["text", "html"]
+  }
+}

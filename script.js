@@ -256,4 +256,8 @@ class ChecklistApp {
     }
 }
 
-const app = new ChecklistApp();
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ChecklistApp;
+} else {
+    const app = new ChecklistApp();
+}
