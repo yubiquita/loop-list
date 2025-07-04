@@ -68,7 +68,6 @@ body {
     right: 0;
     bottom: 0;
     background: white;
-    transition: transform 0.3s ease;
 }
 
 .screen.hidden {
