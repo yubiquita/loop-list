@@ -138,7 +138,7 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 
 ### テスト構成
 - **Jest**: テストフレームワーク（JSDOM環境）
-- **総テスト数**: 201個のテストケース（7つのテストスイート）
+- **総テスト数**: 247個のテストケース（8つのテストスイート）
 - **高いテストカバレッジ**: 各管理クラスが包括的にテスト済み
 - **カバレッジ対象**: `script.js`（レガシー版）のみ
 - **セットアップファイル**: `tests/setup.js`でlocalStorageをモック化
@@ -152,6 +152,7 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 5. `ChecklistItemManager.test.js`: 項目管理機能テスト
 6. `config.test.js`: 設定管理テスト
 7. `constants.test.js`: 定数管理テスト
+8. `checklist-app.test.js`: レガシー版script.js統合テスト
 
 ### Jest設定詳細
 - **テスト環境**: `jsdom`
@@ -176,3 +177,13 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 <script src="src/ChecklistItemManager.js"></script>
 <script src="src/ChecklistApp.js"></script>
 ```
+
+## 重要な実装上の注意点
+
+### HTMLエスケープの必要性
+特殊文字（`'`、`"`、`&`、`<`、`>`）を含むユーザー入力は、XSS攻撃防止とJavaScript構文エラー防止のため、必ず`escapeHtml()`メソッドでエスケープする必要がある。
+
+### イベントハンドラーの推奨パターン
+- `onclick`属性の使用は避け、`addEventListener`を使用する
+- イベントバブリングを防ぐため、必要に応じて`event.stopPropagation()`を使用
+- 削除ボタンなどの破壊的操作には`confirm()`ダイアログを使用

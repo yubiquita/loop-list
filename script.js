@@ -52,6 +52,12 @@ class ChecklistApp {
         localStorage.setItem('checklists', JSON.stringify(this.lists));
     }
 
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     showListScreen() {
         this.listScreen.classList.remove('hidden');
         this.detailScreen.classList.add('hidden');
@@ -110,18 +116,26 @@ class ChecklistApp {
             listElement.className = 'list-item';
             listElement.innerHTML = `
                 <div class="list-info">
-                    <h3>${list.name}</h3>
+                    <h3>${this.escapeHtml(list.name)}</h3>
                     <p>${checkedCount}/${totalCount} 完了</p>
                 </div>
                 <div class="list-actions">
-                    <button class="delete-btn" onclick="app.deleteList('${list.id}')">削除</button>
+                    <button class="delete-btn" data-list-id="${list.id}">削除</button>
                 </div>
             `;
             
+            // リスト詳細表示のクリックイベント
             listElement.addEventListener('click', (e) => {
                 if (!e.target.classList.contains('delete-btn')) {
                     this.showDetailScreen(list.id);
                 }
+            });
+            
+            // 削除ボタンのクリックイベント
+            const deleteBtn = listElement.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteList(list.id);
             });
             
             this.listContainer.appendChild(listElement);
@@ -136,7 +150,7 @@ class ChecklistApp {
             itemElement.className = `check-item ${item.checked ? 'checked' : ''}`;
             itemElement.innerHTML = `
                 <input type="checkbox" id="item-${item.id}" ${item.checked ? 'checked' : ''}>
-                <label for="item-${item.id}">${item.text}</label>
+                <label for="item-${item.id}">${this.escapeHtml(item.text)}</label>
             `;
             
             const checkbox = itemElement.querySelector('input');
@@ -158,13 +172,18 @@ class ChecklistApp {
             const itemElement = document.createElement('div');
             itemElement.className = 'edit-item';
             itemElement.innerHTML = `
-                <input type="text" value="${item.text}" placeholder="項目名">
-                <button onclick="app.removeEditItem(${index})">削除</button>
+                <input type="text" value="${this.escapeHtml(item.text)}" placeholder="項目名">
+                <button class="remove-item-btn" data-index="${index}">削除</button>
             `;
             
             const input = itemElement.querySelector('input');
             input.addEventListener('input', () => {
                 item.text = input.value;
+            });
+            
+            const removeBtn = itemElement.querySelector('.remove-item-btn');
+            removeBtn.addEventListener('click', () => {
+                this.removeEditItem(index);
             });
             
             this.editItems.appendChild(itemElement);
@@ -196,10 +215,15 @@ class ChecklistApp {
     }
 
     deleteList(listId) {
-        if (confirm('このリストを削除しますか？')) {
-            this.lists = this.lists.filter(l => l.id !== listId);
-            this.saveData();
-            this.renderLists();
+        try {
+            if (confirm('このリストを削除しますか？')) {
+                this.lists = this.lists.filter(l => l.id !== listId);
+                this.saveData();
+                this.renderLists();
+            }
+        } catch (error) {
+            console.error('リストの削除中にエラーが発生しました:', error);
+            alert('リストの削除に失敗しました。');
         }
     }
 
