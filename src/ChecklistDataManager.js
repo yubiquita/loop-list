@@ -2,6 +2,9 @@
  * チェックリストデータ管理クラス
  * localStorage操作、データ保存・読み込み、ID生成、データバリデーションを担当
  */
+(function() {
+    'use strict';
+    
 class ChecklistDataManager {
     constructor() {
         this.storageKey = 'checklists';
@@ -126,4 +129,9 @@ class ChecklistDataManager {
 // モジュールエクスポート
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ChecklistDataManager;
+} else {
+    // ブラウザ環境でグローバルオブジェクトに追加
+    window.ChecklistDataManager = ChecklistDataManager;
 }
+
+})();

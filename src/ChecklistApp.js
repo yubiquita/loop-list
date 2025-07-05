@@ -2,6 +2,8 @@
  * メインのチェックリストアプリケーションクラス
  * 各管理クラスを統合してアプリケーション全体を制御
  */
+(function() {
+    'use strict';
 
 // 依存関係の読み込み（ブラウザ環境では script タグで読み込まれる前提）
 let ChecklistDataManager, ChecklistUIManager, ChecklistListManager, ChecklistItemManager;
@@ -12,6 +14,12 @@ if (typeof module !== 'undefined' && module.exports) {
     ChecklistUIManager = require('./ChecklistUIManager.js');
     ChecklistListManager = require('./ChecklistListManager.js');
     ChecklistItemManager = require('./ChecklistItemManager.js');
+} else {
+    // ブラウザ環境では window オブジェクトから取得
+    ChecklistDataManager = window.ChecklistDataManager;
+    ChecklistUIManager = window.ChecklistUIManager;
+    ChecklistListManager = window.ChecklistListManager;
+    ChecklistItemManager = window.ChecklistItemManager;
 }
 
 class ChecklistApp {
@@ -366,6 +374,9 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     // ブラウザ環境では window.app として利用可能にする
     if (typeof window !== 'undefined') {
+        window.ChecklistApp = ChecklistApp;
         window.app = new ChecklistApp();
     }
 }
+
+})();

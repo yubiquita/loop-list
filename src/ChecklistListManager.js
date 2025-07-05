@@ -2,6 +2,9 @@
  * チェックリストのリスト管理クラス
  * リストCRUD操作、リスト描画、リスト検索・フィルタリングを担当
  */
+(function() {
+    'use strict';
+    
 class ChecklistListManager {
     constructor(dataManager, uiManager) {
         this.dataManager = dataManager;
@@ -292,4 +295,9 @@ class ChecklistListManager {
 // モジュールエクスポート
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ChecklistListManager;
+} else {
+    // ブラウザ環境でグローバルオブジェクトに追加
+    window.ChecklistListManager = ChecklistListManager;
 }
+
+})();

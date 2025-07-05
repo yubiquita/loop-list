@@ -167,15 +167,17 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 2. **GREEN**: テストを通すための最小限の実装
 3. **REFACTOR**: コード品質向上（テスト通過を維持）
 
-### ブラウザ環境での依存関係
-ブラウザ環境では、各管理クラスはscriptタグで順序通りに読み込む必要がある：
-```html
-<script src="src/ChecklistDataManager.js"></script>
-<script src="src/ChecklistUIManager.js"></script>
-<script src="src/ChecklistListManager.js"></script>
-<script src="src/ChecklistItemManager.js"></script>
-<script src="src/ChecklistApp.js"></script>
-```
+### モジュール読み込みアーキテクチャ
+各モジュールファイルは即座実行関数式（IIFE）で包まれており、ブラウザ環境とNode.js環境の両方に対応：
+
+**ブラウザ環境**: 
+- 各クラスは`window`オブジェクトに追加される
+- scriptタグでの読み込み順序が重要（config.js → constants.js → 各Manager → ChecklistApp）
+- ChecklistAppが`window.app`として自動初期化される
+
+**Node.js環境**:
+- `module.exports`を使用した標準的なCommonJSモジュール
+- テスト環境では`require()`で依存関係を解決
 
 ## 重要な実装上の注意点
 
@@ -187,7 +189,22 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 - イベントバブリングを防ぐため、必要に応じて`event.stopPropagation()`を使用
 - 削除ボタンなどの破壊的操作には`confirm()`ダイアログを使用
 
-## Android開発メモ
+## モバイル開発
 
-### デバッグ
-- AndroidでConsole確認が必要な場合、erudaを一時的に追加する
+### Androidデバッグ
+AndroidでConsole確認が必要な場合、以下のスクリプトを一時的に追加：
+```html
+<script src="//cdn.jsdelivr.net/npm/eruda"></script>
+<script>eruda.init();</script>
+```
+
+### 画面構成
+3つの主要画面をCSS `hidden` クラスで切り替え：
+- `listScreen`: リスト一覧画面
+- `detailScreen`: チェックリスト詳細画面  
+- `editScreen`: リスト編集画面
+
+### アプリケーション状態管理
+- `window.app`: メインアプリケーションインスタンス
+- 状態はChecklistAppクラス内で集中管理
+- データ永続化はlocalStorageを使用

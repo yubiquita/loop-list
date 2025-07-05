@@ -2,6 +2,9 @@
  * チェックリストUI管理クラス
  * 画面遷移制御、DOM要素の取得・管理、イベントバインディング、プログレスバー更新を担当
  */
+(function() {
+    'use strict';
+    
 class ChecklistUIManager {
     constructor() {
         this.elements = {};
@@ -253,4 +256,9 @@ class ChecklistUIManager {
 // モジュールエクスポート
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ChecklistUIManager;
+} else {
+    // ブラウザ環境でグローバルオブジェクトに追加
+    window.ChecklistUIManager = ChecklistUIManager;
 }
+
+})();

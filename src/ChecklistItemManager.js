@@ -2,6 +2,9 @@
  * チェックリストの項目管理クラス
  * 項目CRUD操作、項目チェック状態管理、項目描画・編集を担当
  */
+(function() {
+    'use strict';
+    
 class ChecklistItemManager {
     constructor(dataManager, uiManager) {
         this.dataManager = dataManager;
@@ -336,4 +339,9 @@ class ChecklistItemManager {
 // モジュールエクスポート
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ChecklistItemManager;
+} else {
+    // ブラウザ環境でグローバルオブジェクトに追加
+    window.ChecklistItemManager = ChecklistItemManager;
 }
+
+})();
