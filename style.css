@@ -418,31 +418,7 @@ body {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* 空の編集エリアのドロップターゲット表示 */
-.edit-items:empty {
-    min-height: 60px;
-    border: 2px dashed #689F38;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e8 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    animation: emptyAreaPulse 2s infinite;
-}
 
-.edit-items:empty::before {
-    content: 'ここにアイテムをドロップしてください';
-    color: #689F38;
-    font-size: 14px;
-    font-weight: 500;
-    opacity: 0.7;
-}
-
-@keyframes emptyAreaPulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 0.9; }
-}
 
 /* SortableJS用のドロップゾーン強化 */
 .edit-items.sortable-drag-over {
@@ -472,15 +448,6 @@ body {
         transform: scale(1.01);
     }
     
-    .edit-items:empty {
-        min-height: 80px;
-        font-size: 16px;
-    }
-    
-    .edit-items:empty::before {
-        content: 'ドロップしてください';
-        font-size: 16px;
-    }
 }
 
 @keyframes targetLinePulseMobile {
