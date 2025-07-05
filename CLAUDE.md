@@ -261,7 +261,10 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 ## モバイル開発
 
 ### Androidデバッグ
-AndroidでConsole確認が必要な場合、以下のスクリプトを一時的に追加：
+**eruda（デバッグコンソール）**: ローカル環境でのみ自動的に有効化される設定済み
+- `localhost`、`127.0.0.1`、空文字列のホスト名で自動読み込み
+- GitHub Pages（本番環境）では無効化される
+- 手動で有効化する場合は、以下のスクリプトを一時的に追加：
 ```html
 <script src="//cdn.jsdelivr.net/npm/eruda"></script>
 <script>eruda.init();</script>

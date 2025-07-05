@@ -52,8 +52,17 @@
         </main>
     </div>
 
-    <script src="//cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
+    <script>
+        // ローカル環境でのみerudaを有効化
+        if (window.location.hostname === 'localhost' || 
+            window.location.hostname === '127.0.0.1' || 
+            window.location.hostname === '') {
+            const script = document.createElement('script');
+            script.src = '//cdn.jsdelivr.net/npm/eruda';
+            document.head.appendChild(script);
+            script.onload = () => eruda.init();
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="src/config.js"></script>
     <script src="src/constants.js"></script>
