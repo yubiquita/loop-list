@@ -298,3 +298,117 @@ body {
         padding: 16px;
     }
 }
+
+/* SortableJS ドラッグ&ドロップ スタイル */
+.drag-handle {
+    cursor: move;
+    cursor: -webkit-grabbing;
+    color: #666;
+    font-weight: bold;
+    margin-right: 8px;
+    padding: 4px;
+    border-radius: 3px;
+    user-select: none;
+    min-width: 20px;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.drag-handle:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.drag-handle:active {
+    cursor: -webkit-grabbing;
+    cursor: grabbing;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: #f8f9fa;
+    border: 2px dashed #689F38;
+    transform: rotate(2deg);
+}
+
+.sortable-chosen {
+    background-color: #e8f5e8;
+    border-color: #689F38;
+    box-shadow: 0 2px 8px rgba(104, 159, 56, 0.3);
+    transform: scale(1.02);
+}
+
+.edit-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.edit-item:hover {
+    background-color: #f0f0f0;
+    border-color: #ccc;
+}
+
+.edit-item input[type="text"] {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+}
+
+.edit-item input[type="text"]:focus {
+    outline: none;
+    border-color: #689F38;
+    box-shadow: 0 0 0 2px rgba(104, 159, 56, 0.2);
+}
+
+.edit-item button {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.2s;
+}
+
+.edit-item button:hover {
+    background: #c82333;
+}
+
+/* ドラッグ中の項目の特別なスタイリング */
+.sortable-drag {
+    opacity: 1;
+    transform: rotate(-2deg);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* モバイル対応のタッチ操作 */
+@media (max-width: 480px) {
+    .drag-handle {
+        min-width: 24px;
+        padding: 6px;
+        font-size: 16px;
+    }
+    
+    .edit-item {
+        padding: 16px 12px;
+    }
+    
+    .sortable-ghost {
+        transform: none;
+    }
+    
+    .sortable-chosen {
+        transform: scale(1.01);
+    }
+}

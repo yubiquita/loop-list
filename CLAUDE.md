@@ -22,6 +22,7 @@ npm test tests/ChecklistDataManager.test.js      # データ管理層
 npm test tests/ChecklistUIManager.test.js        # UI管理層
 npm test tests/ChecklistListManager.test.js      # リスト管理層
 npm test tests/ChecklistItemManager.test.js      # 項目管理層
+npm test tests/sortable-feature.test.js          # SortableJS並び替え機能
 npm test tests/config.test.js                    # 設定
 npm test tests/constants.test.js                 # 定数
 ```
@@ -59,6 +60,7 @@ GitHub Pagesは自動的にmasterブランチからデプロイされる
 
 ### 技術スタック
 - **フロントエンド**: HTML5, CSS3, JavaScript (Vanilla JS)
+- **ライブラリ**: SortableJS (CDN) - ドラッグ&ドロップ並び替え機能
 - **データ保存**: localStorage
 - **ホスティング**: GitHub Pages
 - **対応環境**: モバイルブラウザ
@@ -103,11 +105,13 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 - `getStatistics()`: 統計情報取得
 
 #### `ChecklistItemManager` (src/ChecklistItemManager.js)
-項目管理層。項目CRUD操作、項目チェック状態管理、項目描画・編集を担当。
+項目管理層。項目CRUD操作、項目チェック状態管理、項目描画・編集、SortableJS並び替え機能を担当。
 - `renderItems()`, `renderEditItems()`: 項目描画
 - `createItem()`, `removeItem()`, `resetAllItems()`: 項目操作
 - `getCheckedItems()`, `searchItems()`: 項目フィルタリング
 - `calculateCompletionRate()`: 完了率計算
+- **SortableJS統合**: `initializeSortable()`, `onSortUpdate()`, `destroySortable()`: ドラッグ&ドロップ並び替え
+- `syncDOMWithData()`: DOM要素とデータ配列の同期
 
 ### 設定・定数管理
 
@@ -153,10 +157,11 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 
 ### テスト構成
 - **Jest**: テストフレームワーク（JSDOM環境）
-- **総テスト数**: 247個のテストケース（8つのテストスイート）
+- **総テスト数**: 270個以上のテストケース（9つのテストスイート）
 - **高いテストカバレッジ**: 各管理クラスが包括的にテスト済み
 - **カバレッジ対象**: `src/` フォルダ内の全モジュール
 - **セットアップファイル**: `tests/setup.js`でlocalStorageをモック化
+- **SortableJSテスト**: SortableJSライブラリのモック化とイベントベーステスト
 
 ### E2Eテスト構成（Termux対応）
 - **Cheerio**: HTMLパーシング・DOM操作テスト
@@ -176,9 +181,10 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 3. `ChecklistUIManager.test.js`: UI管理機能テスト
 4. `ChecklistListManager.test.js`: リスト管理機能テスト
 5. `ChecklistItemManager.test.js`: 項目管理機能テスト
-6. `config.test.js`: 設定管理テスト
-7. `constants.test.js`: 定数管理テスト
-8. `checklist-app.test.js`: レガシー版テスト（非推奨）
+6. `sortable-feature.test.js`: SortableJS並び替え機能専用テスト
+7. `config.test.js`: 設定管理テスト
+8. `constants.test.js`: 定数管理テスト
+9. `checklist-app.test.js`: レガシー版テスト（非推奨）
 
 ### Jest設定詳細
 - **テスト環境**: `jsdom`
@@ -215,6 +221,13 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 - `onclick`属性の使用は避け、`addEventListener`を使用する
 - イベントバブリングを防ぐため、必要に応じて`event.stopPropagation()`を使用
 - 削除ボタンなどの破壊的操作には`confirm()`ダイアログを使用
+
+### SortableJS並び替え機能の実装パターン
+- **アーキテクチャ**: 従来の`reorderItems()`メソッドは削除され、SortableJSのイベントベースアーキテクチャを採用
+- **初期化**: `initializeSortable(container)`でSortableJSインスタンスを作成し、`destroySortable()`で適切に破棄
+- **データ同期**: `onSortUpdate()`で配列操作後、`syncDOMWithData()`でDOM要素とデータ配列を同期
+- **DOM構造**: 編集項目は`data-id`属性とドラッグハンドル（`.drag-handle`）を必須とする
+- **テスト**: SortableJSはモック化してイベントデータでテスト、実際のライブラリ動作は統合テストで確認
 
 ## モバイル開発
 

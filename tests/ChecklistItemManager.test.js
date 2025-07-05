@@ -362,28 +362,32 @@ describe('ChecklistItemManager', () => {
     });
 
     describe('項目操作機能（高度）', () => {
-        test('reorderItems()で項目の並び替えができる', () => {
+        test('onSortUpdate()で項目の並び替えができる（reorderItemsの代替）', () => {
             const items = [
                 { id: '1', text: 'A' },
                 { id: '2', text: 'B' },
                 { id: '3', text: 'C' }
             ];
+            const evt = { oldIndex: 0, newIndex: 2 };
 
-            const result = itemManager.reorderItems(items, 0, 2);
+            const result = itemManager.onSortUpdate(items, evt);
 
             expect(result[0].text).toBe('B');
             expect(result[1].text).toBe('C');
             expect(result[2].text).toBe('A');
         });
 
-        test('reorderItems()で無効なインデックスの場合配列が変更されない', () => {
+        test('onSortUpdate()で無効なインデックスの場合配列が変更されない', () => {
             const items = [
                 { id: '1', text: 'A' },
                 { id: '2', text: 'B' }
             ];
 
-            const result1 = itemManager.reorderItems(items, -1, 1);
-            const result2 = itemManager.reorderItems(items, 0, 3);
+            const evt1 = { oldIndex: -1, newIndex: 1 };
+            const evt2 = { oldIndex: 0, newIndex: 3 };
+
+            const result1 = itemManager.onSortUpdate(items, evt1);
+            const result2 = itemManager.onSortUpdate([...items], evt2);
 
             expect(result1[0].text).toBe('A');
             expect(result2[0].text).toBe('A');

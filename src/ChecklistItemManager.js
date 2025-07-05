@@ -78,7 +78,9 @@ class ChecklistItemManager {
     createEditItemElement(item, index, onItemTextChange, onItemRemove) {
         const itemElement = document.createElement('div');
         itemElement.className = 'edit-item';
+        itemElement.dataset.id = item.id;
         itemElement.innerHTML = `
+            <span class="drag-handle">:::</span>
             <input type="text" value="${this.escapeHtml(item.text)}" placeholder="項目名">
             <button type="button" data-index="${index}">削除</button>
         `;
@@ -211,21 +213,125 @@ class ChecklistItemManager {
     }
 
     /**
-     * 項目を並び替え
+     * SortableJSを初期化
+     * @param {HTMLElement} container - ソート可能にするコンテナ要素
+     * @returns {Object} SortableJSインスタンス
+     */
+    initializeSortable(container) {
+        if (!container) {
+            throw new Error('Invalid container element');
+        }
+        
+        if (typeof Sortable === 'undefined') {
+            throw new Error('SortableJS library not found');
+        }
+        
+        const options = {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            handle: '.drag-handle',
+            onStart: (evt) => this.onSortStart(evt),
+            onUpdate: (evt) => this.onSortUpdate(this.currentItems, evt),
+            onEnd: (evt) => this.onSortEnd(evt)
+        };
+        
+        this.sortableInstance = Sortable.create(container, options);
+        return this.sortableInstance;
+    }
+
+    /**
+     * SortableJSインスタンスを破棄
+     */
+    destroySortable() {
+        if (this.sortableInstance) {
+            this.sortableInstance.destroy();
+            this.sortableInstance = null;
+        }
+    }
+
+    /**
+     * ソート開始時のイベントハンドラー
+     * @param {Event} evt - SortableJSイベント
+     */
+    onSortStart(evt) {
+        // ドラッグ開始時の処理（必要に応じて拡張）
+        console.log('Sort start:', evt.oldIndex);
+    }
+
+    /**
+     * ソート更新時のイベントハンドラー（reorderItemsの代替）
      * @param {Array} items - 項目配列
-     * @param {number} fromIndex - 移動元のインデックス
-     * @param {number} toIndex - 移動先のインデックス
+     * @param {Event} evt - SortableJSイベント
      * @returns {Array} 並び替えられた項目配列
      */
-    reorderItems(items, fromIndex, toIndex) {
-        if (fromIndex < 0 || fromIndex >= items.length || 
-            toIndex < 0 || toIndex >= items.length) {
+    onSortUpdate(items, evt) {
+        if (!items || !evt) {
             return items;
         }
         
-        const item = items.splice(fromIndex, 1)[0];
-        items.splice(toIndex, 0, item);
+        const { oldIndex, newIndex } = evt;
+        
+        // インデックスの妥当性チェック
+        if (oldIndex < 0 || oldIndex >= items.length || 
+            newIndex < 0 || newIndex >= items.length ||
+            oldIndex === newIndex) {
+            return items;
+        }
+        
+        // 配列の並び替え（SortableJS最適化）
+        const item = items.splice(oldIndex, 1)[0];
+        items.splice(newIndex, 0, item);
+        
+        // データの同期
+        this.syncDOMWithData(items);
+        
         return items;
+    }
+
+    /**
+     * ソート終了時のイベントハンドラー
+     * @param {Event} evt - SortableJSイベント
+     */
+    onSortEnd(evt) {
+        // ドラッグ終了時の処理（必要に応じて拡張）
+        console.log('Sort end:', evt.oldIndex, '→', evt.newIndex);
+    }
+
+    /**
+     * DOM要素とデータ配列を同期
+     * @param {Array} items - 項目配列
+     */
+    syncDOMWithData(items) {
+        if (!items) return;
+        
+        const container = document.getElementById('editItems');
+        if (!container) return;
+        
+        // DOM要素の順序を更新
+        items.forEach((item, index) => {
+            const element = container.querySelector(`[data-id="${item.id}"]`);
+            if (element) {
+                // 要素を正しい位置に移動
+                if (container.children[index] !== element) {
+                    container.insertBefore(element, container.children[index]);
+                }
+                
+                // 入力値を同期
+                const input = element.querySelector('input[type="text"]');
+                if (input && input.value !== item.text) {
+                    input.value = item.text;
+                }
+            }
+        });
+    }
+
+    /**
+     * 現在の項目配列を設定（SortableJS用）
+     * @param {Array} items - 項目配列
+     */
+    setCurrentItems(items) {
+        this.currentItems = items;
     }
 
     /**

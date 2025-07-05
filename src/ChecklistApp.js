@@ -142,6 +142,11 @@ class ChecklistApp {
      * 編集項目を描画
      */
     renderEditItems() {
+        // 既存のSortableJSインスタンスを破棄
+        if (this.itemManager.sortableInstance) {
+            this.itemManager.destroySortable();
+        }
+        
         this.itemManager.renderEditItems(
             this.editingData.items,
             (item, index) => {
@@ -154,6 +159,43 @@ class ChecklistApp {
                 this.renderEditItems();
             }
         );
+        
+        // SortableJSを初期化（項目が1つ以上ある場合）
+        if (this.editingData.items.length > 0) {
+            this.initializeSortableForEditItems();
+        }
+    }
+
+    /**
+     * 編集項目用のSortableJSを初期化
+     */
+    initializeSortableForEditItems() {
+        const container = document.getElementById('editItems');
+        if (!container) return;
+        
+        try {
+            // 現在の項目配列をセット
+            this.itemManager.setCurrentItems(this.editingData.items);
+            
+            // SortableJSを初期化
+            this.itemManager.initializeSortable(container);
+            
+            // カスタムイベントハンドラーをオーバーライド
+            if (this.itemManager.sortableInstance) {
+                const originalOnUpdate = this.itemManager.sortableInstance.options.onUpdate;
+                this.itemManager.sortableInstance.options.onUpdate = (evt) => {
+                    // 項目配列を更新
+                    this.itemManager.onSortUpdate(this.editingData.items, evt);
+                    
+                    // データを保存
+                    this.dataManager.saveData(this.listManager.getLists());
+                    
+                    console.log('項目順序を更新:', evt.oldIndex, '→', evt.newIndex);
+                };
+            }
+        } catch (error) {
+            console.error('SortableJS初期化エラー:', error);
+        }
     }
 
     /**
