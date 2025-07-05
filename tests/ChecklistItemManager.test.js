@@ -485,4 +485,66 @@ describe('ChecklistItemManager', () => {
             expect(result).toBe('Hello World');
         });
     });
+
+    describe('Enterキーによる項目追加機能', () => {
+        let onItemTextChange, onItemRemove, onAddNewItem;
+        
+        beforeEach(() => {
+            onItemTextChange = jest.fn();
+            onItemRemove = jest.fn();
+            onAddNewItem = jest.fn();
+        });
+
+        test('テキスト入力済み項目でEnterキーを押すと新項目追加コールバックが呼ばれる', () => {
+            const item = { id: '1', text: 'テスト項目', checked: false };
+            const itemElement = itemManager.createEditItemElement(item, 0, onItemTextChange, onItemRemove, onAddNewItem);
+            const input = itemElement.querySelector('input[type="text"]');
+            
+            // テキストが入力されている状態でEnterキーを押下
+            input.value = 'テスト項目';
+            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' });
+            input.dispatchEvent(enterEvent);
+            
+            expect(onAddNewItem).toHaveBeenCalledTimes(1);
+        });
+
+        test('空の項目でEnterキーを押しても新項目追加コールバックは呼ばれない', () => {
+            const item = { id: '1', text: '', checked: false };
+            const itemElement = itemManager.createEditItemElement(item, 0, onItemTextChange, onItemRemove, onAddNewItem);
+            const input = itemElement.querySelector('input[type="text"]');
+            
+            // 空の状態でEnterキーを押下
+            input.value = '';
+            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' });
+            input.dispatchEvent(enterEvent);
+            
+            expect(onAddNewItem).not.toHaveBeenCalled();
+        });
+
+        test('スペースのみの項目でEnterキーを押しても新項目追加コールバックは呼ばれない', () => {
+            const item = { id: '1', text: '   ', checked: false };
+            const itemElement = itemManager.createEditItemElement(item, 0, onItemTextChange, onItemRemove, onAddNewItem);
+            const input = itemElement.querySelector('input[type="text"]');
+            
+            // スペースのみの状態でEnterキーを押下
+            input.value = '   ';
+            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' });
+            input.dispatchEvent(enterEvent);
+            
+            expect(onAddNewItem).not.toHaveBeenCalled();
+        });
+
+        test('他のキー（例：Tab）では新項目追加コールバックは呼ばれない', () => {
+            const item = { id: '1', text: 'テスト項目', checked: false };
+            const itemElement = itemManager.createEditItemElement(item, 0, onItemTextChange, onItemRemove, onAddNewItem);
+            const input = itemElement.querySelector('input[type="text"]');
+            
+            // テキストが入力されている状態でTabキーを押下
+            input.value = 'テスト項目';
+            const tabEvent = new KeyboardEvent('keydown', { key: 'Tab' });
+            input.dispatchEvent(tabEvent);
+            
+            expect(onAddNewItem).not.toHaveBeenCalled();
+        });
+    });
 });

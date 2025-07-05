@@ -157,6 +157,10 @@ class ChecklistApp {
                 // 項目削除時のコールバック
                 this.itemManager.removeItem(this.editingData.items, index);
                 this.renderEditItems();
+            },
+            () => {
+                // 新項目追加時のコールバック（Enterキー用）
+                this.addEditItem();
             }
         );
         

@@ -57,12 +57,13 @@ class ChecklistItemManager {
      * @param {Array} items - 項目配列
      * @param {Function} onItemTextChange - 項目テキスト変更時のコールバック
      * @param {Function} onItemRemove - 項目削除時のコールバック
+     * @param {Function} onAddNewItem - 新項目追加時のコールバック
      */
-    renderEditItems(items, onItemTextChange, onItemRemove) {
+    renderEditItems(items, onItemTextChange, onItemRemove, onAddNewItem) {
         this.uiManager.clearEditItems();
         
         items.forEach((item, index) => {
-            const itemElement = this.createEditItemElement(item, index, onItemTextChange, onItemRemove);
+            const itemElement = this.createEditItemElement(item, index, onItemTextChange, onItemRemove, onAddNewItem);
             this.uiManager.appendToEditItems(itemElement);
         });
     }
@@ -73,9 +74,10 @@ class ChecklistItemManager {
      * @param {number} index - 項目のインデックス
      * @param {Function} onItemTextChange - 項目テキスト変更時のコールバック
      * @param {Function} onItemRemove - 項目削除時のコールバック
+     * @param {Function} onAddNewItem - 新項目追加時のコールバック
      * @returns {HTMLElement} 編集用項目要素
      */
-    createEditItemElement(item, index, onItemTextChange, onItemRemove) {
+    createEditItemElement(item, index, onItemTextChange, onItemRemove, onAddNewItem) {
         const itemElement = document.createElement('div');
         itemElement.className = 'edit-item';
         itemElement.dataset.id = item.id;
@@ -90,6 +92,16 @@ class ChecklistItemManager {
             item.text = input.value;
             if (onItemTextChange) {
                 onItemTextChange(item, index);
+            }
+        });
+        
+        // Enterキーでの新項目追加機能
+        // テキストが入力されている場合のみ新項目を追加（空項目の量産を防ぐ）
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && onAddNewItem) {
+                if (input.value.trim() !== '') {
+                    onAddNewItem();
+                }
             }
         });
         
