@@ -7,6 +7,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:unit": "jest --selectProjects=\"Unit Tests\"",
+    "test:e2e": "jest --selectProjects=\"E2E Tests\"",
+    "test:e2e:watch": "jest --selectProjects=\"E2E Tests\" --watch",
+    "test:e2e:debug": "jest --selectProjects=\"E2E Tests\" --verbose --no-cache",
+    "test:all": "jest --selectProjects=\"Unit Tests\" \"E2E Tests\"",
     "serve": "npx http-server -p 8080 -c-1"
   },
   "keywords": ["checklist", "todo", "web-app"],
@@ -14,11 +19,27 @@
   "license": "MIT",
   "devDependencies": {
     "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0"
+    "jest-environment-jsdom": "^29.7.0",
+    "cheerio": "^1.0.0-rc.12",
+    "zombie": "^6.1.4",
+    "http-server": "^14.1.1"
   },
   "jest": {
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "projects": [
+      {
+        "displayName": "Unit Tests",
+        "testMatch": ["<rootDir>/tests/*.test.js"],
+        "testEnvironment": "jsdom",
+        "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"]
+      },
+      {
+        "displayName": "E2E Tests",
+        "testMatch": ["<rootDir>/tests/e2e/**/*.test.js"],
+        "testEnvironment": "node",
+        "setupFilesAfterEnv": ["<rootDir>/tests/e2e/setup.js"],
+        "testTimeout": 30000
+      }
+    ],
     "collectCoverageFrom": [
       "src/**/*.js",
       "!node_modules/**"

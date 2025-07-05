@@ -26,6 +26,21 @@ npm test tests/config.test.js                    # 設定
 npm test tests/constants.test.js                 # 定数
 ```
 
+### E2Eテスト環境（Termux対応）
+```bash
+npm run test:e2e                      # E2Eテストのみ実行
+npm run test:e2e:watch                # E2Eテストの監視モード
+npm run test:e2e:debug                # E2Eテストのデバッグモード
+npm run test:unit                     # ユニットテストのみ実行
+npm run test:all                      # 全テスト（ユニット + E2E）実行
+
+# E2Eテストの個別実行
+npm test tests/e2e/dom-parsing.test.js          # DOM パーシング
+npm test tests/e2e/http-integration.test.js     # HTTP 統合テスト
+npm test tests/e2e/zombie-browser.test.js       # ブラウザシミュレーション
+npm test tests/e2e/user-workflows.test.js       # ユーザーワークフロー
+```
+
 ### ローカル開発サーバー
 ```bash
 npm run serve             # または npx http-server -p 8080 -c-1
@@ -48,6 +63,7 @@ GitHub Pagesは自動的にmasterブランチからデプロイされる
 - **ホスティング**: GitHub Pages
 - **対応環境**: モバイルブラウザ
 - **テスト**: Jest + JSDOM
+- **E2Eテスト**: Cheerio + Zombie.js + HTTP Server (Termux最適化)
 
 ### アーキテクチャ構成
 
@@ -141,6 +157,17 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 - **高いテストカバレッジ**: 各管理クラスが包括的にテスト済み
 - **カバレッジ対象**: `src/` フォルダ内の全モジュール
 - **セットアップファイル**: `tests/setup.js`でlocalStorageをモック化
+
+### E2Eテスト構成（Termux対応）
+- **Cheerio**: HTMLパーシング・DOM操作テスト
+- **Zombie.js**: 軽量ブラウザシミュレーション
+- **HTTP Server**: 統合テスト環境
+- **テスト種別**: 
+  - DOM パーシングテスト
+  - HTTP 統合テスト
+  - ブラウザシミュレーション
+  - ユーザーワークフロー包括テスト
+- **Termux最適化**: 従来のPlaywright/Cypressの代替として軽量ソリューション
 
 ### テストファイル構造
 各管理クラスに対応するテストファイル：
