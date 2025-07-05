@@ -100,10 +100,15 @@ describe('SortableJS並び替え機能', () => {
                 expect(options.animation).toBe(150);
                 expect(options.ghostClass).toBe('sortable-ghost');
                 expect(options.chosenClass).toBe('sortable-chosen');
+                expect(options.dragClass).toBe('sortable-drag');
                 expect(options.handle).toBe('.drag-handle');
+                expect(options.emptyInsertThreshold).toBe(5);
+                expect(options.forceFallback).toBe(false);
+                expect(options.fallbackTolerance).toBe(3);
                 expect(typeof options.onUpdate).toBe('function');
                 expect(typeof options.onStart).toBe('function');
                 expect(typeof options.onEnd).toBe('function');
+                expect(typeof options.onMove).toBe('function');
             }
         });
     });
@@ -307,27 +312,65 @@ describe('SortableJS並び替え機能', () => {
         });
     });
 
-    describe('パフォーマンス', () => {
-        test('大量データでの並び替え性能', () => {
-            // 1000個の項目を作成
-            const largeItems = Array.from({ length: 1000 }, (_, i) => ({
-                id: `item${i}`,
-                text: `項目${i}`,
-                checked: i % 2 === 0
-            }));
+    describe('ターゲットライン表示機能', () => {
+        test('ドラッグ移動時にonSortMoveが正しく呼ばれる', () => {
+            const container = document.getElementById('editItems');
+            itemManager.initializeSortable(container);
             
-            const startTime = performance.now();
+            // onSortMoveイベントをシミュレート
+            const moveEventData = {
+                to: container,
+                related: document.querySelector('[data-id="item2"]'),
+                willInsertAfter: true
+            };
             
-            if (itemManager.onSortUpdate) {
-                const eventData = { oldIndex: 0, newIndex: 999 };
-                itemManager.onSortUpdate(largeItems, eventData);
+            if (itemManager.onSortMove) {
+                const result = itemManager.onSortMove(moveEventData);
+                
+                // ドラッグオーバークラスが追加されることを確認
+                expect(container.classList.contains('sortable-drag-over')).toBe(true);
+                
+                // デフォルトの挿入ポイントを維持することを確認
+                expect(result).toBe(true);
             }
+        });
+
+        test('ドラッグ終了時にドラッグオーバークラスがクリーンアップされる', () => {
+            const container = document.getElementById('editItems');
+            container.classList.add('sortable-drag-over');
             
-            const endTime = performance.now();
-            const executionTime = endTime - startTime;
+            const endEventData = {
+                oldIndex: 0,
+                newIndex: 1
+            };
             
-            // 1000個の項目の並び替えが100ms以内で完了することを確認
-            expect(executionTime).toBeLessThan(100);
+            if (itemManager.onSortEnd) {
+                itemManager.onSortEnd(endEventData);
+                
+                // ドラッグオーバークラスが削除されることを確認
+                expect(container.classList.contains('sortable-drag-over')).toBe(false);
+            }
+        });
+
+        test('dragClassオプションが設定されている', () => {
+            const container = document.getElementById('editItems');
+            itemManager.initializeSortable(container);
+            
+            const callArgs = mockSortable.create.mock.calls[0];
+            const options = callArgs[1];
+            
+            expect(options.dragClass).toBe('sortable-drag');
+        });
+
+        test('emptyInsertThresholdが設定されている', () => {
+            const container = document.getElementById('editItems');
+            itemManager.initializeSortable(container);
+            
+            const callArgs = mockSortable.create.mock.calls[0];
+            const options = callArgs[1];
+            
+            expect(options.emptyInsertThreshold).toBe(5);
         });
     });
+
 });

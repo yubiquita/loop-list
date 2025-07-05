@@ -230,10 +230,15 @@ class ChecklistItemManager {
             animation: 150,
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
             handle: '.drag-handle',
+            emptyInsertThreshold: 5,
+            forceFallback: false,
+            fallbackTolerance: 3,
             onStart: (evt) => this.onSortStart(evt),
             onUpdate: (evt) => this.onSortUpdate(this.currentItems, evt),
-            onEnd: (evt) => this.onSortEnd(evt)
+            onEnd: (evt) => this.onSortEnd(evt),
+            onMove: (evt) => this.onSortMove(evt)
         };
         
         this.sortableInstance = Sortable.create(container, options);
@@ -296,6 +301,30 @@ class ChecklistItemManager {
     onSortEnd(evt) {
         // ドラッグ終了時の処理（必要に応じて拡張）
         console.log('Sort end:', evt.oldIndex, '→', evt.newIndex);
+        
+        // ドラッグオーバークラスをクリーンアップ
+        const containers = document.querySelectorAll('.edit-items');
+        containers.forEach(container => {
+            container.classList.remove('sortable-drag-over');
+        });
+    }
+
+    /**
+     * ソート移動時のイベントハンドラー（ターゲットライン表示用）
+     * @param {Event} evt - SortableJSイベント
+     * @returns {boolean|number} 移動許可の判定
+     */
+    onSortMove(evt) {
+        const { related, willInsertAfter } = evt;
+        
+        // ドラッグオーバー効果を追加
+        const container = evt.to;
+        if (container && container.classList.contains('edit-items')) {
+            container.classList.add('sortable-drag-over');
+        }
+        
+        // デフォルトの挿入ポイントを維持
+        return true;
     }
 
     /**

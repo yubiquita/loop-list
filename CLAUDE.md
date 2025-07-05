@@ -157,11 +157,11 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 
 ### テスト構成
 - **Jest**: テストフレームワーク（JSDOM環境）
-- **総テスト数**: 270個以上のテストケース（9つのテストスイート）
+- **総テスト数**: 220個以上のテストケース（8つのテストスイート）
 - **高いテストカバレッジ**: 各管理クラスが包括的にテスト済み
 - **カバレッジ対象**: `src/` フォルダ内の全モジュール
 - **セットアップファイル**: `tests/setup.js`でlocalStorageをモック化
-- **SortableJSテスト**: SortableJSライブラリのモック化とイベントベーステスト
+- **SortableJSテスト**: SortableJSライブラリのモック化とイベントベーステスト、ターゲットライン表示機能テスト
 
 ### E2Eテスト構成（Termux対応）
 - **Cheerio**: HTMLパーシング・DOM操作テスト
@@ -181,10 +181,11 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 3. `ChecklistUIManager.test.js`: UI管理機能テスト
 4. `ChecklistListManager.test.js`: リスト管理機能テスト
 5. `ChecklistItemManager.test.js`: 項目管理機能テスト
-6. `sortable-feature.test.js`: SortableJS並び替え機能専用テスト
+6. `sortable-feature.test.js`: SortableJS並び替え＋ターゲットライン表示機能専用テスト
 7. `config.test.js`: 設定管理テスト
 8. `constants.test.js`: 定数管理テスト
-9. `checklist-app.test.js`: レガシー版テスト（非推奨）
+
+**注意**: パフォーマンステストは実際の問題発生時に追加、レガシーファイルは削除済み
 
 ### Jest設定詳細
 - **テスト環境**: `jsdom`
@@ -227,7 +228,23 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 - **初期化**: `initializeSortable(container)`でSortableJSインスタンスを作成し、`destroySortable()`で適切に破棄
 - **データ同期**: `onSortUpdate()`で配列操作後、`syncDOMWithData()`でDOM要素とデータ配列を同期
 - **DOM構造**: 編集項目は`data-id`属性とドラッグハンドル（`.drag-handle`）を必須とする
+- **ターゲットライン表示**: `onMove`イベントでドラッグオーバー効果、アニメーション付きゴーストクラス、空エリア表示
 - **テスト**: SortableJSはモック化してイベントデータでテスト、実際のライブラリ動作は統合テストで確認
+
+### SortableJS設定オプション
+```javascript
+{
+    animation: 150,
+    ghostClass: 'sortable-ghost',        // ドロップ先プレースホルダー（パルス＋グロー効果）
+    chosenClass: 'sortable-chosen',      // 選択された項目
+    dragClass: 'sortable-drag',          // ドラッグ中の項目
+    handle: '.drag-handle',              // ドラッグハンドル
+    emptyInsertThreshold: 5,             // 空領域でのドロップ感度
+    forceFallback: false,                // 一貫した表示体験
+    fallbackTolerance: 3,                // モバイル対応
+    onStart, onUpdate, onEnd, onMove     // イベントハンドラー
+}
+```
 
 ## モバイル開発
 

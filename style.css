@@ -329,6 +329,32 @@ body {
     background-color: #f8f9fa;
     border: 2px dashed #689F38;
     transform: rotate(2deg);
+    animation: targetLinePulse 1s infinite alternate;
+    position: relative;
+}
+
+.sortable-ghost::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #689F38, #8BC34A);
+    border-radius: 4px;
+    opacity: 0.2;
+    z-index: -1;
+    animation: targetLineGlow 1.5s infinite alternate;
+}
+
+@keyframes targetLinePulse {
+    0% { opacity: 0.4; }
+    100% { opacity: 0.7; }
+}
+
+@keyframes targetLineGlow {
+    0% { opacity: 0.1; }
+    100% { opacity: 0.3; }
 }
 
 .sortable-chosen {
@@ -392,6 +418,39 @@ body {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
+/* 空の編集エリアのドロップターゲット表示 */
+.edit-items:empty {
+    min-height: 60px;
+    border: 2px dashed #689F38;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e8f5e8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    animation: emptyAreaPulse 2s infinite;
+}
+
+.edit-items:empty::before {
+    content: 'ここにアイテムをドロップしてください';
+    color: #689F38;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.7;
+}
+
+@keyframes emptyAreaPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.9; }
+}
+
+/* SortableJS用のドロップゾーン強化 */
+.edit-items.sortable-drag-over {
+    border-color: #4CAF50;
+    background-color: #e8f5e8;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
 /* モバイル対応のタッチ操作 */
 @media (max-width: 480px) {
     .drag-handle {
@@ -406,9 +465,26 @@ body {
     
     .sortable-ghost {
         transform: none;
+        animation: targetLinePulseMobile 1.2s infinite alternate;
     }
     
     .sortable-chosen {
         transform: scale(1.01);
     }
+    
+    .edit-items:empty {
+        min-height: 80px;
+        font-size: 16px;
+    }
+    
+    .edit-items:empty::before {
+        content: 'ドロップしてください';
+        font-size: 16px;
+    }
+}
+
+@keyframes targetLinePulseMobile {
+    0% { opacity: 0.5; }
+    100% { opacity: 0.8; }
+}
 }
