@@ -2,7 +2,7 @@
   "name": "loop-list",
   "version": "1.0.0",
   "description": "日常用途の繰り返し使用チェックリストを管理するシンプルなWebアプリケーション",
-  "main": "script.js",
+  "main": "src/ChecklistApp.js",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
@@ -20,7 +20,7 @@
     "testEnvironment": "jsdom",
     "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
     "collectCoverageFrom": [
-      "script.js",
+      "src/**/*.js",
       "!node_modules/**"
     ],
     "coverageReporters": ["text", "html"]
