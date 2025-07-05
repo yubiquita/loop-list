@@ -469,6 +469,36 @@ class ChecklistItemManager {
         return Array.isArray(items) && 
                items.every(item => this.validateItem(item));
     }
+
+    /**
+     * 最後に追加された項目の入力欄にフォーカスを設定
+     * @param {Array} items - 項目配列
+     */
+    focusLastAddedItem(items) {
+        if (!items || items.length === 0) return;
+        
+        // 最後の項目のIDを取得
+        const lastItem = items[items.length - 1];
+        if (!lastItem || !lastItem.id) return;
+        
+        // 対応するDOM要素を検索
+        const container = document.getElementById('editItems');
+        if (!container) return;
+        
+        const lastItemElement = container.querySelector(`[data-id="${lastItem.id}"]`);
+        if (!lastItemElement) return;
+        
+        // 入力欄を取得してフォーカスを設定
+        const input = lastItemElement.querySelector('input[type="text"]');
+        if (input) {
+            // 非同期でフォーカスを設定（DOM更新後に確実に実行）
+            setTimeout(() => {
+                input.focus();
+                // カーソルを末尾に移動
+                input.setSelectionRange(input.value.length, input.value.length);
+            }, 0);
+        }
+    }
 }
 
 // モジュールエクスポート

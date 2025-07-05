@@ -244,6 +244,9 @@ class ChecklistApp {
     addEditItem() {
         this.itemManager.addEmptyItem(this.editingData.items);
         this.renderEditItems();
+        
+        // 新しく追加された項目の入力欄にフォーカスを設定
+        this.itemManager.focusLastAddedItem(this.editingData.items);
     }
 
     /**

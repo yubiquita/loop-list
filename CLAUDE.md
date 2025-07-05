@@ -56,6 +56,10 @@ git push origin master
 ```
 GitHub Pagesは自動的にmasterブランチからデプロイされる
 
+### 依存関係
+- **SortableJS**: CDN経由で読み込み（`https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js`）
+- **開発依存関係**: Jest, JSDOM, Cheerio, Zombie.js, HTTP Server
+
 ## アーキテクチャ
 
 ### 技術スタック
@@ -112,6 +116,7 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 - `calculateCompletionRate()`: 完了率計算
 - **SortableJS統合**: `initializeSortable()`, `onSortUpdate()`, `destroySortable()`: ドラッグ&ドロップ並び替え
 - `syncDOMWithData()`: DOM要素とデータ配列の同期
+- `focusLastAddedItem()`: 新規項目追加時の自動フォーカス
 
 ### 設定・定数管理
 
@@ -222,6 +227,11 @@ UI管理層。画面遷移制御、DOM要素の取得・管理、イベントバ
 - `onclick`属性の使用は避け、`addEventListener`を使用する
 - イベントバブリングを防ぐため、必要に応じて`event.stopPropagation()`を使用
 - 削除ボタンなどの破壊的操作には`confirm()`ダイアログを使用
+
+### フォーカス管理
+- 新規項目追加時は`focusLastAddedItem()`で自動的に入力欄にフォーカス
+- モバイルデバイスでのユーザビリティを考慮した実装
+- `setTimeout`を使用してDOM更新後の確実なフォーカス設定
 
 ### SortableJS並び替え機能の実装パターン
 - **アーキテクチャ**: 従来の`reorderItems()`メソッドは削除され、SortableJSのイベントベースアーキテクチャを採用
