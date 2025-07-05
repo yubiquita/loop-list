@@ -14,35 +14,49 @@
     "test:all": "jest --selectProjects=\"Unit Tests\" \"E2E Tests\"",
     "serve": "npx http-server -p 8080 -c-1"
   },
-  "keywords": ["checklist", "todo", "web-app"],
+  "keywords": [
+    "checklist",
+    "todo",
+    "web-app"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
     "cheerio": "^1.0.0-rc.12",
-    "zombie": "^6.1.4",
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
   },
   "jest": {
     "projects": [
       {
         "displayName": "Unit Tests",
-        "testMatch": ["<rootDir>/tests/*.test.js"],
+        "testMatch": [
+          "<rootDir>/tests/*.test.js"
+        ],
         "testEnvironment": "jsdom",
-        "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"]
+        "setupFilesAfterEnv": [
+          "<rootDir>/tests/setup.js"
+        ]
       },
       {
         "displayName": "E2E Tests",
-        "testMatch": ["<rootDir>/tests/e2e/**/*.test.js"],
+        "testMatch": [
+          "<rootDir>/tests/e2e/**/*.test.js"
+        ],
         "testEnvironment": "node",
-        "setupFilesAfterEnv": ["<rootDir>/tests/e2e/setup.js"]
+        "setupFilesAfterEnv": [
+          "<rootDir>/tests/e2e/setup.js"
+        ]
       }
     ],
     "collectCoverageFrom": [
       "src/**/*.js",
       "!node_modules/**"
     ],
-    "coverageReporters": ["text", "html"]
+    "coverageReporters": [
+      "text",
+      "html"
+    ]
   }
 }
