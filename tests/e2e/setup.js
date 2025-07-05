@@ -7,6 +7,9 @@
 global.testTimeout = 30000;
 global.serverStartupTimeout = 10000;
 
+// Jestのタイムアウト設定
+jest.setTimeout(30000);
+
 // プロセス管理用の配列
 global.runningProcesses = [];
 
