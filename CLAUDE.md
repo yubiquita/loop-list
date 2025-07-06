@@ -12,17 +12,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### テスト実行
 ```bash
-npm test                           # 全テスト（246個のテストケース）を実行
+npm test                           # 全テスト（259個のテストケース）を実行
 npm run test:watch                 # ファイル変更を監視してテストを自動実行
 npm run test:coverage              # カバレッジレポート付きでテストを実行
 npm run test:unit                  # ユニットテストのみ（227個）実行
-npm run test:e2e                   # E2Eテストのみ（19個）実行
+npm run test:e2e                   # E2Eテストのみ（32個）実行
 
 # 個別テスト実行例
 npm test tests/ChecklistApp.test.js              # メインアプリケーション
 npm test tests/ChecklistItemManager.test.js      # 項目管理層
 npm test tests/ChecklistUIManager.test.js        # UI管理層
 npm test tests/sortable-feature.test.js          # SortableJS並び替え機能
+npm test tests/e2e/interaction.test.js           # ユーザーインタラクション（E2E）
+npm test tests/e2e/dom-parsing.test.js           # DOM構造検証（E2E）
 ```
 
 ### 開発サーバー
@@ -44,7 +46,7 @@ git push origin master           # GitHub Pagesが自動デプロイ
 - **ライブラリ**: SortableJS (CDN) - ドラッグ&ドロップ並び替え機能
 - **データ保存**: localStorage
 - **ホスティング**: GitHub Pages
-- **テスト**: Jest + JSDOM（ユニット）+ Cheerio（E2E、Termux最適化）
+- **テスト**: Jest + JSDOM（ユニット）+ Cheerio & @testing-library/dom（E2E、Termux最適化）
 
 ### コード構成
 
@@ -101,11 +103,34 @@ git push origin master           # GitHub Pagesが自動デプロイ
 ## テスト環境
 
 ### テスト概要
-- **総計**: 246個のテストケース（9個のテストスイート）
+- **総計**: 259個のテストケース（10個のテストスイート）
 - **ユニットテスト**: 227個（各管理クラスを包括的にテスト）
-- **E2Eテスト**: 19個（DOM パーシング、Termux最適化）
+- **E2Eテスト**: 32個（ハイブリッドアプローチ、Termux最適化）
+  - **DOM構造テスト**: 19個（Cheerio使用）
+  - **インタラクションテスト**: 13個（@testing-library/dom使用）
 - **セットアップ**: `tests/setup.js`でlocalStorageモック化
 - **SortableJSテスト**: ライブラリをモック化してイベントベーステスト
+
+### E2Eテストアーキテクチャ（ハイブリッドアプローチ）
+
+**2つの異なるE2Eテスト技術を組み合わせて包括的なテストカバレッジを実現**：
+
+1. **静的DOM構造テスト** (`tests/e2e/dom-parsing.test.js`)
+   - **技術**: Cheerio
+   - **目的**: HTML構造、要素配置、CSS クラスの検証
+   - **実行環境**: Node.js、ヘッドレスブラウザ不要
+   - **利点**: 高速、軽量、Termux環境で安定動作
+
+2. **動的インタラクションテスト** (`tests/e2e/interaction.test.js`)
+   - **技術**: @testing-library/dom + JSDOM
+   - **目的**: ユーザーインタラクション、画面遷移、機能フローの検証
+   - **実行環境**: JSDOMシミュレーション環境
+   - **対象**: リスト作成、編集、項目管理、画面遷移
+
+**Termux環境最適化**：
+- メモリ効率的（ヘッドレスブラウザ不使用）
+- 高速実行（全てメモリ内で完結）
+- 依存関係最小化（Playwright/Puppeteer不要）
 
 ### TDD開発アプローチ
 新機能追加時の必須手順：
@@ -140,3 +165,21 @@ git push origin master           # GitHub Pagesが自動デプロイ
 ### デバッグ環境
 - **eruda**: ローカル環境（localhost、127.0.0.1）でのみ自動有効化
 - **本番環境**: GitHub Pagesでは無効化される
+
+## 新機能開発時の注意点
+
+### E2Eテスト追加時
+新しいユーザーインタラクション機能を追加する際：
+1. **静的要素**: `tests/e2e/dom-parsing.test.js`に構造テストを追加
+2. **動的機能**: `tests/e2e/interaction.test.js`にインタラクションテストを追加
+3. **両方のアプローチ**で機能をカバーし、Termux環境での安定性を確保
+
+### モジュール間の依存関係
+- 各Managerクラスは他のManagerクラスに直接依存しない
+- 全ての調整は`ChecklistApp`クラスで行う
+- 新機能は既存のManager責務に従って配置する
+
+### データ永続化
+- 全てのデータ操作は`ChecklistDataManager`経由で行う
+- UIの更新は`ChecklistUIManager`経由で行う
+- 直接的なDOM操作やlocalStorage操作は避ける
