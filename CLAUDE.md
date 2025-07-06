@@ -12,15 +12,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### テスト実行
 ```bash
-npm test                           # 全テスト（243個のテストケース）を実行
+npm test                           # 全テスト（246個のテストケース）を実行
 npm run test:watch                 # ファイル変更を監視してテストを自動実行
 npm run test:coverage              # カバレッジレポート付きでテストを実行
-npm run test:unit                  # ユニットテストのみ（224個）実行
+npm run test:unit                  # ユニットテストのみ（227個）実行
 npm run test:e2e                   # E2Eテストのみ（19個）実行
 
 # 個別テスト実行例
 npm test tests/ChecklistApp.test.js              # メインアプリケーション
 npm test tests/ChecklistItemManager.test.js      # 項目管理層
+npm test tests/ChecklistUIManager.test.js        # UI管理層
 npm test tests/sortable-feature.test.js          # SortableJS並び替え機能
 ```
 
@@ -100,8 +101,8 @@ git push origin master           # GitHub Pagesが自動デプロイ
 ## テスト環境
 
 ### テスト概要
-- **総計**: 243個のテストケース（9個のテストスイート）
-- **ユニットテスト**: 224個（各管理クラスを包括的にテスト）
+- **総計**: 246個のテストケース（9個のテストスイート）
+- **ユニットテスト**: 227個（各管理クラスを包括的にテスト）
 - **E2Eテスト**: 19個（DOM パーシング、Termux最適化）
 - **セットアップ**: `tests/setup.js`でlocalStorageモック化
 - **SortableJSテスト**: ライブラリをモック化してイベントベーステスト
@@ -125,9 +126,10 @@ git push origin master           # GitHub Pagesが自動デプロイ
 - **DOM要件**: 編集項目に`data-id`属性と`.drag-handle`クラスが必須
 - **設定**: animation: 150, ghostClass: 'sortable-ghost', handle: '.drag-handle'など
 
-### フォーカス管理
+### フォーカス管理とEnterキー機能
 - **自動フォーカス**: 新規項目追加時に`focusLastAddedItem()`で入力欄フォーカス
-- **Enterキー**: テキスト入力済み項目でEnter押下時に新項目追加（空項目では無効）
+- **項目入力でのEnterキー**: テキスト入力済み項目でEnter押下時に新項目追加（空項目では無効）
+- **リスト名入力でのEnterキー**: リスト名入力フィールドでEnter押下時に新項目追加
 - **モバイル対応**: `setTimeout`でDOM更新後の確実なフォーカス設定
 
 ### 画面構成（SPA）

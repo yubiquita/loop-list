@@ -276,4 +276,53 @@ describe('ChecklistUIManager', () => {
             expect(() => uiManager.setElementVisibility('nonExistent', true)).not.toThrow();
         });
     });
+
+    describe('リスト名入力フィールドでのEnterキー処理', () => {
+        test('bindEvents()でリスト名入力フィールドのEnterキーハンドラーが正しくバインドされる', () => {
+            const handlers = {
+                addList: jest.fn(),
+                back: jest.fn(),
+                edit: jest.fn(),
+                reset: jest.fn(),
+                cancel: jest.fn(),
+                save: jest.fn(),
+                addItem: jest.fn(),
+                listNameEnter: jest.fn()
+            };
+
+            uiManager.bindEvents(handlers);
+
+            // リスト名入力フィールドでEnterキーを押す
+            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' });
+            uiManager.elements.listNameInput.dispatchEvent(enterEvent);
+
+            expect(handlers.listNameEnter).toHaveBeenCalled();
+        });
+
+        test('リスト名入力フィールドでEnter以外のキーを押してもハンドラーは呼ばれない', () => {
+            const handlers = {
+                listNameEnter: jest.fn()
+            };
+
+            uiManager.bindEvents(handlers);
+
+            // Tab キーを押す
+            const tabEvent = new KeyboardEvent('keydown', { key: 'Tab' });
+            uiManager.elements.listNameInput.dispatchEvent(tabEvent);
+
+            expect(handlers.listNameEnter).not.toHaveBeenCalled();
+        });
+
+        test('リスト名入力フィールドでのEnterキーハンドラーが未定義でもエラーが発生しない', () => {
+            const handlers = {
+                addList: jest.fn()
+                // listNameEnterは未定義
+            };
+
+            expect(() => uiManager.bindEvents(handlers)).not.toThrow();
+
+            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter' });
+            expect(() => uiManager.elements.listNameInput.dispatchEvent(enterEvent)).not.toThrow();
+        });
+    });
 });

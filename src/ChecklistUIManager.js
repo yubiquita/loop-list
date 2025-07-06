@@ -78,6 +78,13 @@ class ChecklistUIManager {
         if (handlers.addItem && this.elements.addItemBtn) {
             this.elements.addItemBtn.addEventListener('click', handlers.addItem);
         }
+        if (handlers.listNameEnter && this.elements.listNameInput) {
+            this.elements.listNameInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    handlers.listNameEnter();
+                }
+            });
+        }
     }
 
     /**

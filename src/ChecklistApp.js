@@ -72,7 +72,8 @@ class ChecklistApp {
             reset: () => this.resetList(),
             cancel: () => this.cancelEdit(),
             save: () => this.saveList(),
-            addItem: () => this.addEditItem()
+            addItem: () => this.addEditItem(),
+            listNameEnter: () => this.addEditItem()
         };
 
         this.uiManager.bindEvents(handlers);
