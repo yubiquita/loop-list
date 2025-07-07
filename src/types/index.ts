@@ -45,8 +45,6 @@ export interface AppConstants {
   }
   CSS_CLASSES: {
     HIDDEN: string
-    SORTABLE_GHOST: string
-    DRAG_HANDLE: string
     CHECKED: string
     PROGRESS_BAR: string
     PROGRESS_TEXT: string
@@ -89,44 +87,6 @@ export interface AppConstants {
   }
 }
 
-// イベント関連の型
-export interface SortableEvent {
-  oldIndex: number
-  newIndex: number
-  item: HTMLElement
-}
-
-export interface ClipboardOptions {
-  text: string
-  onSuccess?: () => void
-  onError?: (error: Error) => void
-}
-
-// フォーカス管理用の型
-export interface FocusManager {
-  focusElement: (selector: string) => void
-  focusLastAddedItem: () => void
-  restoreFocus: () => void
-}
-
-// ユーティリティ関数の型
-export interface Utils {
-  generateId: () => string
-  formatDate: (date: Date) => string
-  escapeHtml: (text: string) => string
-  debounce: <T extends (...args: any[]) => any>(func: T, delay: number) => T
-  deepClone: <T>(obj: T) => T
-  isValidString: (str: string) => boolean
-  calculateProgress: (items: ChecklistItem[]) => { completed: number; total: number; percentage: number }
-}
-
-// ストレージ関連の型
-export interface StorageManager {
-  load: () => ChecklistData | null
-  save: (data: ChecklistData) => void
-  clear: () => void
-  exists: () => boolean
-}
 
 // プログレス計算結果の型
 export interface ProgressInfo {
@@ -135,22 +95,6 @@ export interface ProgressInfo {
   percentage: number
 }
 
-// エラーハンドリング用の型
-export interface AppError {
-  code: string
-  message: string
-  details?: any
-}
-
-// コンポーネント Props 型
-export interface ChecklistItemProps {
-  item: ChecklistItem
-  isDragging?: boolean
-  showDragHandle?: boolean
-  onUpdate?: (item: ChecklistItem) => void
-  onDelete?: (itemId: string) => void
-  onEnterKey?: () => void
-}
 
 export interface ProgressBarProps {
   progress: ProgressInfo

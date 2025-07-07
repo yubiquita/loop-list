@@ -57,6 +57,9 @@ git push origin master           # GitHub Pagesが自動デプロイ
 - **EditScreen.vue**: リスト編集画面（項目の追加・編集・削除）
 - **ConfirmModal.vue**: 確認ダイアログ
 - **ProgressBar.vue**: 進捗表示コンポーネント
+- **LoadingSpinner.vue**: ローディング表示
+- **ErrorMessage.vue**: エラーメッセージ表示
+- **SuccessMessage.vue**: 成功メッセージ表示
 
 #### 状態管理 (src/stores/)
 - **checklist.ts**: メインデータストア（リスト・項目管理）
@@ -66,9 +69,8 @@ git push origin master           # GitHub Pagesが自動デプロイ
 - **useDebounce.ts**: デバウンス機能
 
 #### ユーティリティ (src/utils/)
-- **storage.ts**: localStorage操作
-- **clipboard.ts**: クリップボード操作
-- **index.ts**: 汎用ヘルパー関数
+- **storage.ts**: localStorage操作（safeJSONParse/Stringify使用）
+- **index.ts**: 汎用ヘルパー関数（ID生成、日付フォーマット、進捗計算、フォーカス管理、配列操作）
 
 #### 定数・型定義
 - **constants/index.ts**: アプリケーション設定、CSS定数
@@ -85,7 +87,6 @@ interface ChecklistList {
   name: string
   items: ChecklistItem[]
   createdAt: string
-  updatedAt: string
 }
 
 interface ChecklistItem {
@@ -183,3 +184,14 @@ src/tests/
 - 全データ操作はChecklistStore経由
 - UI状態変更はUIStore経由
 - 直接的なDOM操作・localStorage操作は避ける
+
+### コードクリーンアップ方針
+- **使用されていないユーティリティ関数**は積極的に削除（例：escapeHtml, deepClone, measurePerformance等）
+- **使用されていない型定義**も削除（例：Utils, FocusManager, StorageManager等）
+- **実際に使用される機能のみ保持**することでコードベースの保守性を維持
+- storage.tsで使用される`safeJSONParse`/`safeJSONStringify`は必須関数として保持
+
+### 状態管理アーキテクチャ
+- **UIStore**: エラー・成功メッセージ、ローディング状態、モーダル表示、画面遷移を一元管理
+- **ChecklistStore**: データの永続化を含むビジネスロジック全般を管理
+- **コンポーネント間通信**: Piniaストア経由、直接的なprops/emitsは最小限
