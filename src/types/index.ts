@@ -11,7 +11,6 @@ export interface ChecklistList {
   name: string
   items: ChecklistItem[]
   createdAt: string
-  updatedAt: string
 }
 
 export interface ChecklistData {

@@ -63,8 +63,7 @@ export const useChecklistStore = defineStore('checklist', () => {
       id: generateId(),
       name: name.trim(),
       items: [],
-      createdAt: formatDate(new Date()),
-      updatedAt: formatDate(new Date())
+      createdAt: formatDate(new Date())
     }
     
     lists.value.push(newList)
@@ -77,8 +76,7 @@ export const useChecklistStore = defineStore('checklist', () => {
     if (index !== -1) {
       lists.value[index] = {
         ...lists.value[index],
-        ...updates,
-        updatedAt: formatDate(new Date())
+        ...updates
       }
       saveDataToStorage()
     }
@@ -107,8 +105,7 @@ export const useChecklistStore = defineStore('checklist', () => {
         id: generateId(),
         checked: false
       })),
-      createdAt: formatDate(new Date()),
-      updatedAt: formatDate(new Date())
+      createdAt: formatDate(new Date())
     }
 
     lists.value.push(duplicatedList)
@@ -128,7 +125,6 @@ export const useChecklistStore = defineStore('checklist', () => {
     }
 
     list.items.push(newItem)
-    list.updatedAt = formatDate(new Date())
     saveDataToStorage()
     return newItem
   }
@@ -140,8 +136,7 @@ export const useChecklistStore = defineStore('checklist', () => {
     const itemIndex = list.items.findIndex(item => item.id === itemId)
     if (itemIndex !== -1) {
       list.items[itemIndex] = { ...list.items[itemIndex], ...updates }
-      list.updatedAt = formatDate(new Date())
-      saveDataToStorage()
+        saveDataToStorage()
     }
   }
 
@@ -152,8 +147,7 @@ export const useChecklistStore = defineStore('checklist', () => {
     const itemIndex = list.items.findIndex(item => item.id === itemId)
     if (itemIndex !== -1) {
       list.items.splice(itemIndex, 1)
-      list.updatedAt = formatDate(new Date())
-      saveDataToStorage()
+        saveDataToStorage()
     }
   }
 
@@ -164,8 +158,7 @@ export const useChecklistStore = defineStore('checklist', () => {
     const item = list.items.find(item => item.id === itemId)
     if (item) {
       item.checked = !item.checked
-      list.updatedAt = formatDate(new Date())
-      saveDataToStorage()
+        saveDataToStorage()
     }
   }
 
@@ -174,7 +167,6 @@ export const useChecklistStore = defineStore('checklist', () => {
     if (!list) return
 
     list.items = reorderArray(list.items, fromIndex, toIndex)
-    list.updatedAt = formatDate(new Date())
     saveDataToStorage()
   }
 
@@ -184,7 +176,6 @@ export const useChecklistStore = defineStore('checklist', () => {
     if (!list) return
 
     list.items = list.items.filter(item => !item.checked)
-    list.updatedAt = formatDate(new Date())
     saveDataToStorage()
   }
 
@@ -195,7 +186,6 @@ export const useChecklistStore = defineStore('checklist', () => {
     list.items.forEach(item => {
       item.checked = true
     })
-    list.updatedAt = formatDate(new Date())
     saveDataToStorage()
   }
 
@@ -206,7 +196,6 @@ export const useChecklistStore = defineStore('checklist', () => {
     list.items.forEach(item => {
       item.checked = false
     })
-    list.updatedAt = formatDate(new Date())
     saveDataToStorage()
   }
 
@@ -221,21 +210,6 @@ export const useChecklistStore = defineStore('checklist', () => {
     )
   }
 
-  const getListsByDate = (ascending: boolean = true) => {
-    return [...lists.value].sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime()
-      const dateB = new Date(b.createdAt).getTime()
-      return ascending ? dateA - dateB : dateB - dateA
-    })
-  }
-
-  const getListsByProgress = (ascending: boolean = true) => {
-    return [...lists.value].sort((a, b) => {
-      const progressA = calculateProgress(a.items).percentage
-      const progressB = calculateProgress(b.items).percentage
-      return ascending ? progressA - progressB : progressB - progressA
-    })
-  }
 
   // 現在のリスト設定
   const setCurrentList = (listId: string | null) => {
@@ -290,8 +264,6 @@ export const useChecklistStore = defineStore('checklist', () => {
     
     // 検索とフィルタリング
     searchLists,
-    getListsByDate,
-    getListsByProgress,
     
     // ユーティリティ
     setCurrentList,

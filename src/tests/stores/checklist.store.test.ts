@@ -30,8 +30,7 @@ describe('ChecklistStore', () => {
           id: 'test-1',
           name: 'テストリスト',
           items: [],
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z'
+          createdAt: '2024-01-01T00:00:00.000Z'
         }]
       }
       localStorage.setItem('checklistData', JSON.stringify(testData))
@@ -71,7 +70,6 @@ describe('ChecklistStore', () => {
       expect(list.items).toEqual([])
       expect(list.id).toBeTruthy()
       expect(list.createdAt).toBeTruthy()
-      expect(list.updatedAt).toBeTruthy()
       expect(store.lists).toHaveLength(1)
     })
 
@@ -89,7 +87,6 @@ describe('ChecklistStore', () => {
       store.updateList(list.id, { name: '更新されたリスト' })
 
       expect(store.lists[0].name).toBe('更新されたリスト')
-      expect(store.lists[0].updatedAt).not.toBe(list.updatedAt)
     })
 
     it('updateList で存在しないリストは無視される', () => {
@@ -313,31 +310,6 @@ describe('ChecklistStore', () => {
       expect(results).toHaveLength(0)
     })
 
-    it('getListsByDate で作成日順にソート', () => {
-      const ascending = store.getListsByDate(true)
-      const descending = store.getListsByDate(false)
-
-      // 作成順序：買い物リスト → 仕事タスク
-      expect(ascending[0].name).toBe('買い物リスト')  // 古い順
-      expect(ascending[1].name).toBe('仕事タスク')
-      expect(descending[0].name).toBe('仕事タスク')  // 新しい順
-      expect(descending[1].name).toBe('買い物リスト')
-    })
-
-    it('getListsByProgress で進捗順にソート', () => {
-      // 買い物リストの1項目をチェック（50%）
-      const list1 = store.lists.find(l => l.name === '買い物リスト')!
-      store.toggleItem(list1.id, list1.items[0].id)
-
-      const ascending = store.getListsByProgress(true)
-      const descending = store.getListsByProgress(false)
-
-      // 仕事タスク（0%）、買い物リスト（50%）
-      expect(ascending[0].name).toBe('仕事タスク')
-      expect(ascending[1].name).toBe('買い物リスト')
-      expect(descending[0].name).toBe('買い物リスト')
-      expect(descending[1].name).toBe('仕事タスク')
-    })
   })
 
   describe('算出プロパティ', () => {
