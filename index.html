@@ -1,75 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>繰り返しチェックリスト</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="app">
-        <header class="header">
-            <h1>繰り返しチェックリスト</h1>
-            <button class="add-list-btn" id="addListBtn">+</button>
-        </header>
-
-        <main class="main">
-            <div class="screen" id="listScreen">
-                <div class="list-container" id="listContainer">
-                </div>
-            </div>
-
-            <div class="screen hidden" id="detailScreen">
-                <div class="detail-header">
-                    <button class="back-btn" id="backBtn">←</button>
-                    <h2 id="listTitle"></h2>
-                    <button class="edit-btn" id="editBtn">編集</button>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                    <span class="progress-text" id="progressText">0/0</span>
-                </div>
-                <div class="item-list" id="itemList">
-                </div>
-                <div class="action-buttons">
-                    <button class="reset-btn" id="resetBtn">リセット</button>
-                </div>
-            </div>
-
-            <div class="screen hidden" id="editScreen">
-                <div class="edit-header">
-                    <button class="cancel-btn" id="cancelBtn">キャンセル</button>
-                    <h2 id="editTitle">編集</h2>
-                    <button class="save-btn" id="saveBtn">保存</button>
-                </div>
-                <div class="edit-form">
-                    <input type="text" id="listNameInput" placeholder="リスト名" class="list-name-input">
-                    <div class="edit-items" id="editItems">
-                    </div>
-                    <button class="add-item-btn" id="addItemBtn">項目を追加</button>
-                </div>
-            </div>
-        </main>
-    </div>
-
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loop List</title>
     <script>
-        // ローカル環境でのみerudaを有効化
-        if (window.location.hostname === 'localhost' || 
-            window.location.hostname === '127.0.0.1' || 
-            window.location.hostname === '') {
-            const script = document.createElement('script');
-            script.src = '//cdn.jsdelivr.net/npm/eruda';
-            document.head.appendChild(script);
-            script.onload = () => eruda.init();
+      // GitHub Pages SPA リダイレクト処理
+      (function() {
+        const redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.href) {
+          history.replaceState(null, null, redirect);
         }
+      })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <script src="src/config.js"></script>
-    <script src="src/constants.js"></script>
-    <script src="src/ChecklistDataManager.js"></script>
-    <script src="src/ChecklistUIManager.js"></script>
-    <script src="src/ChecklistListManager.js"></script>
-    <script src="src/ChecklistItemManager.js"></script>
-    <script src="src/ChecklistApp.js"></script>
-</body>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

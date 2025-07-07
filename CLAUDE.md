@@ -4,32 +4,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-**loop-list** - 日常用途の繰り返し使用チェックリストを管理するシンプルなWebアプリケーション
-- **ライセンス**: MIT
+**loop-list** - Vue 3 + TypeScript + Vite で構築された繰り返し使用チェックリスト管理Webアプリケーション
+- **ライセンス**: MIT  
 - **バージョン**: 1.0.0
+- **技術スタック**: Vue 3, TypeScript, Vite, Pinia, Vitest
 
 ## 開発コマンド
 
-### テスト実行
+### 基本開発
 ```bash
-npm test                           # 全テスト（259個のテストケース）を実行
-npm run test:watch                 # ファイル変更を監視してテストを自動実行
-npm run test:coverage              # カバレッジレポート付きでテストを実行
-npm run test:unit                  # ユニットテストのみ（227個）実行
-npm run test:e2e                   # E2Eテストのみ（32個）実行
-
-# 個別テスト実行例
-npm test tests/ChecklistApp.test.js              # メインアプリケーション
-npm test tests/ChecklistItemManager.test.js      # 項目管理層
-npm test tests/ChecklistUIManager.test.js        # UI管理層
-npm test tests/sortable-feature.test.js          # SortableJS並び替え機能
-npm test tests/e2e/interaction.test.js           # ユーザーインタラクション（E2E）
-npm test tests/e2e/dom-parsing.test.js           # DOM構造検証（E2E）
+npm run dev                        # 開発サーバー起動 (http://localhost:5173)
+npm run build                      # プロダクションビルド
+npm run preview                    # ビルド結果をプレビュー
 ```
 
-### 開発サーバー
+### テスト実行
 ```bash
-npm run serve             # http://127.0.0.1:8080 でローカル開発サーバー起動
+npm test                           # 全テスト実行
+npm run test:coverage              # カバレッジレポート付きテスト実行
+
+# 個別テスト実行例
+npm test src/tests/stores/checklist.store.test.ts    # ChecklistStore
+npm test src/tests/composables/useDebounce.test.ts   # useDebounce
+npm test src/tests/components/App.test.ts            # Appコンポーネント
 ```
 
 ### デプロイ
@@ -41,145 +38,148 @@ git push origin master           # GitHub Pagesが自動デプロイ
 
 ## アーキテクチャ
 
-### 技術スタック
-- **フロントエンド**: HTML5, CSS3, Vanilla JavaScript
-- **ライブラリ**: SortableJS (CDN) - ドラッグ&ドロップ並び替え機能
+### 技術スタック詳細
+- **フロントエンド**: Vue 3 (Composition API), TypeScript
+- **状態管理**: Pinia
+- **ビルドツール**: Vite 6.0.1
+- **テスト**: Vitest + Vue Test Utils + happy-dom
 - **データ保存**: localStorage
 - **ホスティング**: GitHub Pages
-- **テスト**: Jest + JSDOM（ユニット）+ Cheerio & @testing-library/dom（E2E、Termux最適化）
 
-### コード構成
+### プロジェクト構造
 
-プロジェクトは責務分離の原則に従った**モジュラーアーキテクチャ**で構成：
+**Vue 3 Composition API**を使用したモダンなSPAアーキテクチャ：
 
-#### コア管理クラス（src/フォルダ）
+#### コアコンポーネント (src/components/)
+- **App.vue**: メインアプリケーション、画面遷移制御
+- **ListScreen.vue**: リスト一覧画面
+- **DetailScreen.vue**: リスト詳細表示画面  
+- **EditScreen.vue**: リスト編集画面（項目の追加・編集・削除）
+- **ConfirmModal.vue**: 確認ダイアログ
+- **ProgressBar.vue**: 進捗表示コンポーネント
 
-**`ChecklistApp`** (src/ChecklistApp.js)
-- メインアプリケーションクラス（エントリーポイント）
-- 各管理クラスの統合と画面遷移制御
-- `window.app`として自動初期化
+#### 状態管理 (src/stores/)
+- **checklist.ts**: メインデータストア（リスト・項目管理）
+- **ui.ts**: UI状態管理（画面遷移、モーダル、ローディング）
 
-**`ChecklistDataManager`** (src/ChecklistDataManager.js)  
-- localStorage操作とデータバリデーション
-- `loadData()`, `saveData()`, `generateId()`
+#### Composables (src/composables/)
+- **useDebounce.ts**: デバウンス機能
 
-**`ChecklistUIManager`** (src/ChecklistUIManager.js)
-- 画面遷移とDOM要素管理
-- `showListScreen()`, `showDetailScreen()`, `showEditScreen()`
+#### ユーティリティ (src/utils/)
+- **storage.ts**: localStorage操作
+- **clipboard.ts**: クリップボード操作
+- **index.ts**: 汎用ヘルパー関数
 
-**`ChecklistListManager`** (src/ChecklistListManager.js)
-- リストCRUD操作と描画
-- `createList()`, `updateList()`, `deleteList()`, `renderLists()`
-
-**`ChecklistItemManager`** (src/ChecklistItemManager.js)
-- 項目管理とSortableJS統合
-- `renderItems()`, `initializeSortable()`, `syncDOMWithData()`
-- **Enterキー機能**: テキスト入力済み項目でEnter押下時に新項目追加
-
-#### 設定・定数
-- **`config.js`**: アプリケーション設定
-- **`constants.js`**: CSS クラス名、DOM要素ID、メッセージ定数
+#### 定数・型定義
+- **constants/index.ts**: アプリケーション設定、CSS定数
+- **types/index.ts**: TypeScript型定義
 
 ### データ構造
-```javascript
-{
-  lists: [
-    {
-      id: "uuid",
-      name: "リスト名", 
-      items: [{ id: "uuid", text: "項目名", checked: false }],
-      createdAt: "ISO日時",
-      updatedAt: "ISO日時"
-    }
-  ]
+```typescript
+interface ChecklistData {
+  lists: ChecklistList[]
+}
+
+interface ChecklistList {
+  id: string
+  name: string
+  items: ChecklistItem[]
+  createdAt: string
+  updatedAt: string
+}
+
+interface ChecklistItem {
+  id: string
+  text: string
+  checked: boolean
 }
 ```
 
-### モジュール読み込み
-- **ブラウザ**: IIFE形式で`window`オブジェクトに追加、読み込み順序が重要
-- **Node.js**: CommonJSモジュール、`require()`で依存関係解決
-- **読み込み順序**: config.js → constants.js → 各Manager → ChecklistApp
+### 画面遷移
+3つのメイン画面をv-showで切り替え：
+- **ListScreen**: リスト一覧
+- **DetailScreen**: リスト詳細・項目チェック
+- **EditScreen**: リスト編集・項目管理
 
-## テスト環境
+## テスト戦略
 
-### テスト概要
-- **総計**: 259個のテストケース（10個のテストスイート）
-- **ユニットテスト**: 227個（各管理クラスを包括的にテスト）
-- **E2Eテスト**: 32個（ハイブリッドアプローチ、Termux最適化）
-  - **DOM構造テスト**: 19個（Cheerio使用）
-  - **インタラクションテスト**: 13個（@testing-library/dom使用）
-- **セットアップ**: `tests/setup.js`でlocalStorageモック化
-- **SortableJSテスト**: ライブラリをモック化してイベントベーステスト
+### テスト環境設定
+- **Test Runner**: Vitest
+- **DOM Environment**: happy-dom  
+- **Vue Testing**: Vue Test Utils
+- **Setup**: `src/test-utils/setup.ts`でlocalStorageモック化
 
-### E2Eテストアーキテクチャ（ハイブリッドアプローチ）
+### テストファイル構成
+```
+src/tests/
+├── basic.test.ts              # 基本動作テスト
+├── components/                # コンポーネントテスト
+│   ├── App.test.ts
+│   ├── ConfirmModal.test.ts
+│   └── ProgressBar.test.ts
+├── composables/               # Composableテスト
+│   └── useDebounce.test.ts
+└── stores/                    # Piniaストアテスト
+    ├── checklist.store.test.ts
+    └── ui.store.test.ts
+```
 
-**2つの異なるE2Eテスト技術を組み合わせて包括的なテストカバレッジを実現**：
-
-1. **静的DOM構造テスト** (`tests/e2e/dom-parsing.test.js`)
-   - **技術**: Cheerio
-   - **目的**: HTML構造、要素配置、CSS クラスの検証
-   - **実行環境**: Node.js、ヘッドレスブラウザ不要
-   - **利点**: 高速、軽量、Termux環境で安定動作
-
-2. **動的インタラクションテスト** (`tests/e2e/interaction.test.js`)
-   - **技術**: @testing-library/dom + JSDOM
-   - **目的**: ユーザーインタラクション、画面遷移、機能フローの検証
-   - **実行環境**: JSDOMシミュレーション環境
-   - **対象**: リスト作成、編集、項目管理、画面遷移
-
-**Termux環境最適化**：
-- メモリ効率的（ヘッドレスブラウザ不使用）
-- 高速実行（全てメモリ内で完結）
-- 依存関係最小化（Playwright/Puppeteer不要）
-
-### TDD開発アプローチ
-新機能追加時の必須手順：
-1. **RED**: 失敗するテストを先に作成
-2. **GREEN**: テストを通すための最小限の実装  
-3. **REFACTOR**: コード品質向上（テスト通過を維持）
+### カバレッジ設定
+- **Provider**: v8
+- **対象**: `src/**/*.{ts,vue}`（テストファイル除く）
+- **除外**: test-utils, main.ts, vite-env.d.ts
 
 ## 重要な実装パターン
 
-### セキュリティとバリデーション
-- **HTMLエスケープ**: ユーザー入力は`escapeHtml()`で必ずエスケープ（XSS防止）
-- **イベントハンドラー**: `onclick`属性を避け、`addEventListener`を使用
-- **破壊的操作**: 削除ボタンには`confirm()`ダイアログを実装
+### Vue 3 Composition API
+- 全コンポーネントで`<script setup>`構文を使用
+- リアクティブな状態は`ref()`/`reactive()`で管理
+- 算出プロパティは`computed()`、副作用は`watch()`で実装
 
-### SortableJS並び替え機能
-- **初期化**: `initializeSortable(container)`で作成、`destroySortable()`で破棄
-- **データ同期**: `onSortUpdate()`後に`syncDOMWithData()`でDOM/データ配列同期
-- **DOM要件**: 編集項目に`data-id`属性と`.drag-handle`クラスが必須
-- **設定**: animation: 150, ghostClass: 'sortable-ghost', handle: '.drag-handle'など
+### Pinia状態管理
+- **ChecklistStore**: リスト・項目データのCRUD操作
+- **UIStore**: 画面状態、モーダル、エラーハンドリング
+- 非同期操作はstore内でasync/awaitパターン
 
-### フォーカス管理とEnterキー機能
-- **自動フォーカス**: 新規項目追加時に`focusLastAddedItem()`で入力欄フォーカス
-- **項目入力でのEnterキー**: テキスト入力済み項目でEnter押下時に新項目追加（空項目では無効）
-- **リスト名入力でのEnterキー**: リスト名入力フィールドでEnter押下時に新項目追加
-- **モバイル対応**: `setTimeout`でDOM更新後の確実なフォーカス設定
+### TypeScript統合
+- 厳密な型定義で実行時エラーを防止
+- Vue用のdefineEmits, definePropsで型安全なコンポーネント通信
+- utils関数は全て型注釈付き
 
-### 画面構成（SPA）
-3つの画面をCSS `hidden`クラスで切り替え：
-- `listScreen` → `detailScreen` → `editScreen`
-- モバイル最適化（viewport、480px以下専用スタイル、`100svh`）
+### エラーハンドリング
+- try/catch文で例外処理
+- UIStore経由でユーザーフレンドリーなエラー表示
+- コンソールログで開発者向け詳細情報
 
-### デバッグ環境
-- **eruda**: ローカル環境（localhost、127.0.0.1）でのみ自動有効化
-- **本番環境**: GitHub Pagesでは無効化される
+### フォーカス管理
+- **項目追加**: `focusLastAddedItem()`で最後の項目にフォーカス
+- **Enterキー**: テキスト入力済み項目でEnter押下時に新項目追加
+- **モバイル対応**: `nextTick()`でDOM更新後の確実なフォーカス
 
-## 新機能開発時の注意点
+### 永続化
+- 全データ操作は`storage.ts`経由でlocalStorageに保存
+- データバリデーション・エラーハンドリング付き
+- JSON形式での保存・復元
 
-### E2Eテスト追加時
-新しいユーザーインタラクション機能を追加する際：
-1. **静的要素**: `tests/e2e/dom-parsing.test.js`に構造テストを追加
-2. **動的機能**: `tests/e2e/interaction.test.js`にインタラクションテストを追加
-3. **両方のアプローチ**で機能をカバーし、Termux環境での安定性を確保
+## 開発時の注意点
 
-### モジュール間の依存関係
-- 各Managerクラスは他のManagerクラスに直接依存しない
-- 全ての調整は`ChecklistApp`クラスで行う
-- 新機能は既存のManager責務に従って配置する
+### TDD開発推奨
+新機能追加時：
+1. **RED**: 失敗するテストを先に作成
+2. **GREEN**: テストを通すための最小限の実装
+3. **REFACTOR**: コード品質向上（テスト通過を維持）
 
-### データ永続化
-- 全てのデータ操作は`ChecklistDataManager`経由で行う
-- UIの更新は`ChecklistUIManager`経由で行う
-- 直接的なDOM操作やlocalStorage操作は避ける
+### Vue 3ベストプラクティス
+- Composition APIの一貫使用
+- 型安全性の確保（defineEmits, defineProps）
+- リアクティビティの適切な使用
+
+### テスト追加時
+- コンポーネントテスト: Vue Test Utilsでマウント・イベント・プロパティをテスト
+- Storeテスト: Piniaの状態変更・算出プロパティ・非同期処理をテスト
+- Composableテスト: 入力・出力・副作用をテスト
+
+### データ整合性
+- 全データ操作はChecklistStore経由
+- UI状態変更はUIStore経由
+- 直接的なDOM操作・localStorage操作は避ける

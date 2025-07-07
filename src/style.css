@@ -1,0 +1,123 @@
+/* Loop List - 既存CSSの完全移植 */
+
+/* SortableJS ドラッグ&ドロップ スタイル */
+.drag-handle {
+    cursor: move;
+    cursor: -webkit-grabbing;
+    color: #666;
+    font-weight: bold;
+    margin-right: 8px;
+    padding: 4px;
+    border-radius: 3px;
+    user-select: none;
+    min-width: 20px;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.drag-handle:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.drag-handle:active {
+    cursor: -webkit-grabbing;
+    cursor: grabbing;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: #f8f9fa;
+    border: 2px dashed #689F38;
+    transform: rotate(2deg);
+    animation: targetLinePulse 1s infinite alternate;
+    position: relative;
+}
+
+.sortable-ghost::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #689F38, #8BC34A);
+    border-radius: 4px;
+    opacity: 0.2;
+    z-index: -1;
+    animation: targetLineGlow 1.5s infinite alternate;
+}
+
+@keyframes targetLinePulse {
+    0% { opacity: 0.4; }
+    100% { opacity: 0.7; }
+}
+
+@keyframes targetLineGlow {
+    0% { opacity: 0.1; }
+    100% { opacity: 0.3; }
+}
+
+.sortable-chosen {
+    background-color: #e8f5e8;
+    border-color: #689F38;
+    box-shadow: 0 2px 8px rgba(104, 159, 56, 0.3);
+    transform: scale(1.02);
+}
+
+/* ドラッグ中の項目の特別なスタイリング */
+.sortable-drag {
+    opacity: 1;
+    transform: rotate(-2deg);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* SortableJS用のドロップゾーン強化 */
+.edit-items.sortable-drag-over {
+    border-color: #4CAF50;
+    background-color: #e8f5e8;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+/* モバイル対応のタッチ操作 */
+@media (max-width: 480px) {
+    .drag-handle {
+        min-width: 24px;
+        padding: 6px;
+        font-size: 16px;
+    }
+    
+    .sortable-ghost {
+        transform: none;
+        animation: targetLinePulseMobile 1.2s infinite alternate;
+    }
+    
+    .sortable-chosen {
+        transform: scale(1.01);
+    }
+}
+
+@keyframes targetLinePulseMobile {
+    0% { opacity: 0.5; }
+    100% { opacity: 0.8; }
+}
+
+/* 隠された要素 */
+.hidden {
+    transform: translateX(100%);
+}
+
+/* 画面遷移 */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    transition: transform 0.3s ease;
+}
+
+.screen.hidden {
+    transform: translateX(100%);
+}
