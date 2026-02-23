@@ -150,27 +150,30 @@ Before marking any task complete, verify:
 
 ## Development Commands
 
-**AI AGENT INSTRUCTION: This section should be adapted to the project's specific language, framework, and build tools.**
-
 ### Setup
 ```bash
-# Example: Commands to set up the development environment (e.g., install dependencies, configure database)
-# e.g., for a Node.js project: npm install
-# e.g., for a Go project: go mod tidy
+npm install
 ```
 
 ### Daily Development
 ```bash
-# Example: Commands for common daily tasks (e.g., start dev server, run tests, lint, format)
-# e.g., for a Node.js project: npm run dev, npm test, npm run lint
-# e.g., for a Go project: go run main.go, go test ./..., go fmt ./...
+npm run dev                        # 開発サーバー起動 (http://localhost:5173)
+npm run lint                       # 静的解析 (vue-tsc)
+npm test                           # 全テスト実行
+npm run test:coverage              # カバレッジレポート付きテスト実行
 ```
 
-### Before Committing
+### Individual Tests
 ```bash
-# Example: Commands to run all pre-commit checks (e.g., format, lint, type check, run tests)
-# e.g., for a Node.js project: npm run check
-# e.g., for a Go project: make check (if a Makefile exists)
+npm test src/tests/stores/checklist.store.test.ts    # ChecklistStore
+npm test src/tests/composables/useDebounce.test.ts   # useDebounce
+npm test src/tests/components/App.test.ts            # Appコンポーネント
+```
+
+### Production
+```bash
+npm run build                      # プロダクションビルド
+npm run preview                    # ビルド結果をプレビュー
 ```
 
 ## Testing Requirements
