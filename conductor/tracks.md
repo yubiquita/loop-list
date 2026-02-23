@@ -1,0 +1,1 @@
+# Project Tracks\n\nThis file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.\n\n---\n\n- [ ] **Track: 現状の動作の確認と基本的な機能の確立**\n  *Link: [./tracks/baseline_verification_20260223/](./tracks/baseline_verification_20260223/)*
