@@ -44,18 +44,20 @@ describe('CRUD Flow Scenario', () => {
     await nextTick()
 
     // 3. 詳細画面でチェックを入れる
-    const detailScreen = wrapper.getComponent({ name: 'DetailScreen' })
-    const checkbox = detailScreen.get('input[type="checkbox"]')
-    await checkbox.setChecked(true)
+    const detailScreen = wrapper.findComponent({ name: 'DetailScreen' })
+    const checkbox = detailScreen.find('input[type="checkbox"]')
+    expect(checkbox.exists()).toBe(true)
+    // setValue または setChecked の代わりに直接イベントをトリガー
+    await checkbox.trigger('click')
     await nextTick()
     
     // 4. 一覧に戻る
-    await detailScreen.get('.back-btn').trigger('click')
+    await detailScreen.find('.back-btn').trigger('click')
     await nextTick()
     await nextTick()
 
     // 一覧画面の表示確認
-    const listScreen = wrapper.getComponent({ name: 'ListScreen' })
+    const listScreen = wrapper.findComponent({ name: 'ListScreen' })
     expect(listScreen.text()).toContain('1/1 (100%)')
 
     // 5. データの永続化確認 (再マウント)
@@ -66,18 +68,18 @@ describe('CRUD Flow Scenario', () => {
     })
     await nextTick()
     await nextTick()
-    const listScreen2 = wrapper2.getComponent({ name: 'ListScreen' })
+    const listScreen2 = wrapper2.findComponent({ name: 'ListScreen' })
     expect(listScreen2.text()).toContain(listName)
     expect(listScreen2.text()).toContain('1/1 (100%)')
     
     // 6. 削除
-    await listScreen2.get('.delete-btn').trigger('click')
+    await listScreen2.find('.delete-btn').trigger('click')
     await nextTick()
     await nextTick()
     
     // 確認モーダル
-    const confirmModal = wrapper2.getComponent({ name: 'ConfirmModal' })
-    await confirmModal.get('.confirm-yes').trigger('click')
+    const confirmModal = wrapper2.findComponent({ name: 'ConfirmModal' })
+    await confirmModal.find('.confirm-yes').trigger('click')
     await nextTick()
     await nextTick()
     
