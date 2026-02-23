@@ -1,1 +1,22 @@
-# Tech Stack - loop-list\n\n## Core Technologies\n- **Language:** TypeScript\n- **Frontend Framework:** Vue 3 (Composition API)\n- **Build Tool:** Vite\n- **State Management:** Pinia\n\n## Testing & Quality\n- **Test Runner:** Vitest\n- **Component Testing:** @vue/test-utils\n- **DOM Environment:** happy-dom\n- **Type Checking:** vue-tsc\n\n## Data Persistence\n- **Storage:** LocalStorage (Browser API)\n- **Utility:** Custom storage wrapper with safe JSON parsing\n\n## Future Improvements (Planned)\n- UI Component Library integration\n- Enhanced data synchronization/backup solutions
+# Tech Stack - loop-list
+
+## Core Technologies
+- **Language:** TypeScript
+- **Frontend Framework:** Vue 3 (Composition API)
+- **Build Tool:** Vite
+- **State Management:** Pinia
+
+## Testing & Quality
+- **Test Runner:** Vitest
+- **Component Testing:** @vue/test-utils
+- **Integration Testing:** Vitest (Scenario-based user flow automation)
+- **DOM Environment:** happy-dom
+- **Type Checking:** vue-tsc
+
+## Data Persistence
+- **Storage:** LocalStorage (Browser API)
+- **Utility:** Custom storage wrapper with safe JSON parsing
+
+## Future Improvements (Planned)
+- UI Component Library integration
+- Enhanced data synchronization/backup solutions

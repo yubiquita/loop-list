@@ -1,0 +1,83 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { nextTick } from 'vue'
+import App from '../../App.vue'
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+describe('CRUD Flow Scenario', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    localStorage.clear()
+    vi.clearAllMocks()
+  })
+
+  it('リストの作成から削除までの一連のフローが正常に動作する', async () => {
+    const listName = 'テストリスト'
+    vi.spyOn(window, 'prompt').mockReturnValue(listName)
+
+    const wrapper = mount(App, {
+      global: {
+        plugins: [createPinia()]
+      }
+    })
+
+    await nextTick()
+
+    // 1. リストの作成
+    await wrapper.find('.add-list-btn').trigger('click')
+    await nextTick()
+    await nextTick()
+
+    // 2. 項目を追加
+    await wrapper.find('.add-item-btn').trigger('click')
+    await nextTick()
+    await wrapper.find('.item-input').setValue('項目1')
+    
+    await delay(400) // デバウンス待機
+    await wrapper.find('.save-btn').trigger('click')
+    await nextTick()
+    await nextTick()
+
+    // 3. 詳細画面でチェックを入れる
+    const detailScreen = wrapper.getComponent({ name: 'DetailScreen' })
+    const checkbox = detailScreen.get('input[type="checkbox"]')
+    await checkbox.setChecked(true)
+    await nextTick()
+    
+    // 4. 一覧に戻る
+    await detailScreen.get('.back-btn').trigger('click')
+    await nextTick()
+    await nextTick()
+
+    // 一覧画面の表示確認
+    const listScreen = wrapper.getComponent({ name: 'ListScreen' })
+    expect(listScreen.text()).toContain('1/1 (100%)')
+
+    // 5. データの永続化確認 (再マウント)
+    const wrapper2 = mount(App, {
+      global: {
+        plugins: [createPinia()]
+      }
+    })
+    await nextTick()
+    await nextTick()
+    const listScreen2 = wrapper2.getComponent({ name: 'ListScreen' })
+    expect(listScreen2.text()).toContain(listName)
+    expect(listScreen2.text()).toContain('1/1 (100%)')
+    
+    // 6. 削除
+    await listScreen2.get('.delete-btn').trigger('click')
+    await nextTick()
+    await nextTick()
+    
+    // 確認モーダル
+    const confirmModal = wrapper2.getComponent({ name: 'ConfirmModal' })
+    await confirmModal.get('.confirm-yes').trigger('click')
+    await nextTick()
+    await nextTick()
+    
+    expect(listScreen2.text()).not.toContain(listName)
+  })
+})
