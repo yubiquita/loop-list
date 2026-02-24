@@ -5,12 +5,12 @@
 
 - [x] Task: 型定義の更新 (f80a6aa)
     - [x] `src/types/index.ts` の `ChecklistItem` に `indent` (boolean) フィールドを追加
-- [ ] Task: ChecklistStore の拡張 (インデント操作)
-    - [ ] `toggleIndentation(listId, itemId)` アクションを追加するためのテストを作成
-    - [ ] 指定したアイテムのインデント状態を切り替えるロジックを実装
-- [ ] Task: ChecklistStore の拡張 (カスケードチェック)
-    - [ ] 親タスクのチェック切り替え時に子タスクも連動するテストを作成
-    - [ ] `toggleItemCheck` アクションを修正し、カスケードチェック/クリアロジックを実装
+- [x] Task: ChecklistStore の拡張 (インデント操作) (ebe5685)
+    - [x] `toggleIndentation(listId, itemId)` アクションを追加するためのテストを作成
+    - [x] 指定したアイテムのインデント状態を切り替えるロジックを実装
+- [x] Task: ChecklistStore の拡張 (カスケードチェック) (ebe5685)
+    - [x] 親タスクのチェック切り替え時に子タスクも連動するテストを作成
+    - [x] `toggleItemCheck` アクションを修正し、カスケードチェック/クリアロジックを実装
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Data Model & Store Logic' (Protocol in workflow.md)
 
 ## Phase 2: UI Implementation & Styling
