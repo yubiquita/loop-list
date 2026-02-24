@@ -47,8 +47,10 @@ describe('CRUD Flow Scenario', () => {
     const detailScreen = wrapper.findComponent({ name: 'DetailScreen' })
     const checkbox = detailScreen.find('input[type="checkbox"]')
     expect(checkbox.exists()).toBe(true)
-    // setValue または setChecked の代わりに直接イベントをトリガー
-    await checkbox.trigger('click')
+    
+    // 型エラー回避のため any キャストして setChecked を使用
+    await (checkbox as any).setChecked(true)
+    await nextTick()
     await nextTick()
     
     // 4. 一覧に戻る
