@@ -217,6 +217,52 @@ describe('ChecklistStore', () => {
       expect(store.lists[0].items[0].checked).toBe(false)
     })
 
+    it('toggleIndentation でインデント状態を切り替えできる', () => {
+      const item = store.addItem(testList.id, 'テスト項目')!
+
+      store.toggleIndentation(testList.id, item.id)
+      expect(store.lists[0].items[0].indent).toBe(true)
+
+      store.toggleIndentation(testList.id, item.id)
+      expect(store.lists[0].items[0].indent).toBe(false)
+    })
+
+    it('親タスクをチェックした際に直後の子タスクもチェックされる (カスケードチェック)', () => {
+      const parent = store.addItem(testList.id, '親項目')!
+      const child1 = store.addItem(testList.id, '子項目1')!
+      const child2 = store.addItem(testList.id, '子項目2')!
+      const other = store.addItem(testList.id, '無関係な項目')!
+
+      store.toggleIndentation(testList.id, child1.id)
+      store.toggleIndentation(testList.id, child2.id)
+
+      // 親をチェック
+      store.toggleItem(testList.id, parent.id)
+
+      expect(store.lists[0].items[0].checked).toBe(true) // 親
+      expect(store.lists[0].items[1].checked).toBe(true) // 子1
+      expect(store.lists[0].items[2].checked).toBe(true) // 子2
+      expect(store.lists[0].items[3].checked).toBe(false) // 無関係
+    })
+
+    it('親タスクのチェックを外した際に直後の子タスクもチェックが外れる (カスケードクリア)', () => {
+      const parent = store.addItem(testList.id, '親項目')!
+      const child1 = store.addItem(testList.id, '子項目1')!
+      
+      store.toggleIndentation(testList.id, child1.id)
+      
+      // 最初は両方チェック済みとする
+      store.toggleItem(testList.id, parent.id)
+      expect(store.lists[0].items[0].checked).toBe(true)
+      expect(store.lists[0].items[1].checked).toBe(true)
+
+      // 親のチェックを外す
+      store.toggleItem(testList.id, parent.id)
+
+      expect(store.lists[0].items[0].checked).toBe(false) // 親
+      expect(store.lists[0].items[1].checked).toBe(false) // 子1
+    })
+
     it('reorderItems で項目の順序を変更できる', () => {
       store.addItem(testList.id, '項目1')
       store.addItem(testList.id, '項目2')
