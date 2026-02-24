@@ -3,8 +3,8 @@
 ## Phase 1: Data Model & Store Logic (TDD)
 このフェーズでは、インデント情報を保持するためのデータ構造の拡張と、カスケードチェックなどのビジネスロジックを実装します。
 
-- [ ] Task: 型定義の更新
-    - [ ] `src/types/index.ts` の `ChecklistItem` に `indent` (boolean) フィールドを追加
+- [x] Task: 型定義の更新 (f80a6aa)
+    - [x] `src/types/index.ts` の `ChecklistItem` に `indent` (boolean) フィールドを追加
 - [ ] Task: ChecklistStore の拡張 (インデント操作)
     - [ ] `toggleIndentation(listId, itemId)` アクションを追加するためのテストを作成
     - [ ] 指定したアイテムのインデント状態を切り替えるロジックを実装
