@@ -155,10 +155,34 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
+    const itemIndex = list.items.findIndex(item => item.id === itemId)
+    if (itemIndex !== -1) {
+      const item = list.items[itemIndex]
+      item.checked = !item.checked
+      
+      // カスケードチェック/クリア
+      // 対象項目の直後に続くインデントされた項目を連動させる
+      for (let i = itemIndex + 1; i < list.items.length; i++) {
+        const nextItem = list.items[i]
+        if (nextItem.indent) {
+          nextItem.checked = item.checked
+        } else {
+          break
+        }
+      }
+      
+      saveDataToStorage()
+    }
+  }
+
+  const toggleIndentation = (listId: string, itemId: string) => {
+    const list = lists.value.find(l => l.id === listId)
+    if (!list) return
+
     const item = list.items.find(item => item.id === itemId)
     if (item) {
-      item.checked = !item.checked
-        saveDataToStorage()
+      item.indent = !item.indent
+      saveDataToStorage()
     }
   }
 
@@ -255,6 +279,7 @@ export const useChecklistStore = defineStore('checklist', () => {
     updateItem,
     deleteItem,
     toggleItem,
+    toggleIndentation,
     reorderItems,
     
     // 一括操作
