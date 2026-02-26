@@ -23,11 +23,11 @@
     - [x] スワイプ操作でストアのアクションを呼び出すように統合
 - [x] Task: Conductor - User Manual Verification 'Phase 2: UI Implementation & Styling' (Protocol in workflow.md)
 
-## Phase 3: Integration & Final Polish
+## Phase 3: Integration & Final Polish [checkpoint: 626c81c]
 最終的な動作確認と、LocalStorage への保存が正しく行われることを確認します。
 
-- [~] Task: 永続化の確認
-    - [ ] インデント状態が正しく LocalStorage に保存され、リロード後も復元されることをテスト/確認
-- [ ] Task: モバイル環境での最終検証
-    - [ ] 実機またはブラウザのシミュレータで、スワイプ操作の滑らかさと挙動を確認
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Integration & Final Polish' (Protocol in workflow.md)
+- [x] Task: 永続化の確認 (6171fa6)
+    - [x] インデント状態が正しく LocalStorage に保存され、リロード後も復元されることをテスト/確認
+- [x] Task: モバイル環境での最終検証 (f31f002)
+    - [x] 実機またはブラウザのシミュレータで、スワイプ操作の滑らかさと挙動を確認
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Integration & Final Polish' (Protocol in workflow.md)
