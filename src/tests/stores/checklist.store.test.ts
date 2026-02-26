@@ -231,7 +231,7 @@ describe('ChecklistStore', () => {
       const parent = store.addItem(testList.id, '親項目')!
       const child1 = store.addItem(testList.id, '子項目1')!
       const child2 = store.addItem(testList.id, '子項目2')!
-      const other = store.addItem(testList.id, '無関係な項目')!
+      store.addItem(testList.id, '無関係な項目')
 
       store.toggleIndentation(testList.id, child1.id)
       store.toggleIndentation(testList.id, child2.id)
