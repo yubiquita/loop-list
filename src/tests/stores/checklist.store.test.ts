@@ -467,5 +467,17 @@ describe('ChecklistStore', () => {
       expect(savedData.lists[0].items).toHaveLength(1)
       expect(savedData.lists[0].items[0].text).toBe('テスト項目')
     })
+
+    it('インデント状態がlocalStorageに保存される', () => {
+      const store = useChecklistStore()
+      const list = store.createList('テストリスト')
+      const item = store.addItem(list.id, 'テスト項目')!
+      
+      store.toggleIndentation(list.id, item.id)
+
+      const savedDataString = localStorage.getItem('checklistData')
+      const savedData = JSON.parse(savedDataString!)
+      expect(savedData.lists[0].items[0].indent).toBe(true)
+    })
   })
 })
