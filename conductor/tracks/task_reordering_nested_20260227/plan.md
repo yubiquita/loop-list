@@ -1,7 +1,7 @@
 # Implementation Plan: Task Reordering (Nested Structure)
 
 ## Phase 1: Preparation & Infrastructure (TDD Foundation)
-- [ ] Task: Install `vuedraggable` dependency
+- [x] Task: Install `vuedraggable` dependency 75a6797
 - [ ] Task: Update `tech-stack.md` with new library and architecture change
 - [ ] Task: Update `types/index.ts` to reflect nested `ChecklistItem` structure
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Preparation' (Protocol in workflow.md)
