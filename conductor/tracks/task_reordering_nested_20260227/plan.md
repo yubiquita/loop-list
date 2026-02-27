@@ -7,7 +7,7 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Preparation' (Protocol in workflow.md)
 
 ## Phase 2: Data Refactoring (Store & Migration)
-- [ ] Task: Create data migration utility (Flat to Nested)
+- [x] Task: Create data migration utility (Flat to Nested) 8ab4ac9
 - [ ] Task: Write tests for migration utility
 - [ ] Task: Update `useChecklistStore` to handle nested items (CRUD operations)
 - [ ] Task: Rewrite `checklist.store.test.ts` for nested structure
