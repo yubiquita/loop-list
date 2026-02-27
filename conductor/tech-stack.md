@@ -5,6 +5,14 @@
 - **Frontend Framework:** Vue 3 (Composition API)
 - **Build Tool:** Vite
 - **State Management:** Pinia
+- **Libraries:**
+  - `vuedraggable` (Drag-and-drop reordering, Vue 3 compatible)
+
+## Data Architecture
+- **Structure:** Nested (Recursive) checklist items.
+  - Items can contain a list of `subItems`.
+  - Supports hierarchical representation and group operations (e.g., moving a parent moves all children).
+  - Migration from flat structure (with `indent` property) to nested structure is handled at the store level.
 
 ## Testing & Quality
 - **Test Runner:** Vitest
