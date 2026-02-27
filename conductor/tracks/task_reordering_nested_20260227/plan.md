@@ -2,7 +2,7 @@
 
 ## Phase 1: Preparation & Infrastructure (TDD Foundation)
 - [x] Task: Install `vuedraggable` dependency 75a6797
-- [ ] Task: Update `tech-stack.md` with new library and architecture change
+- [x] Task: Update `tech-stack.md` with new library and architecture change e0cba3f
 - [ ] Task: Update `types/index.ts` to reflect nested `ChecklistItem` structure
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Preparation' (Protocol in workflow.md)
 
