@@ -1,6 +1,6 @@
 # Implementation Plan: Task Reordering (Nested Structure)
 
-## Phase 1: Preparation & Infrastructure (TDD Foundation)
+## Phase 1: Preparation & Infrastructure (TDD Foundation) [checkpoint: e4a5752]
 - [x] Task: Install `vuedraggable` dependency 75a6797
 - [x] Task: Update `tech-stack.md` with new library and architecture change e0cba3f
 - [x] Task: Update `types/index.ts` to reflect nested `ChecklistItem` structure 0b6fb29
