@@ -14,26 +14,35 @@
       />
       <label @click="toggleItem(item.id)">{{ item.text }}</label>
       
-      <!-- ドラッグハンドル (Phase 3 以降で使用) -->
+      <!-- ドラッグハンドル -->
       <div class="drag-handle">
         <span class="dots">⋮⋮</span>
       </div>
     </div>
 
-    <!-- 子要素の再帰的な表示 -->
-    <div v-if="item.subItems && item.subItems.length > 0" class="sub-items">
-      <ChecklistNode
-        v-for="subItem in item.subItems"
-        :key="subItem.id"
-        :item="subItem"
-        :listId="listId"
-      />
-    </div>
+    <!-- 子要素の再帰的な表示 (vuedraggable による並べ替え対応) -->
+    <draggable
+      v-if="item.subItems"
+      v-model="item.subItems"
+      class="sub-items"
+      handle=".drag-handle"
+      item-key="id"
+      :animation="200"
+      @change="onReorder"
+    >
+      <template #item="{ element }">
+        <ChecklistNode
+          :item="element"
+          :listId="listId"
+        />
+      </template>
+    </draggable>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import draggable from 'vuedraggable'
 import type { ChecklistItem } from '../types'
 import { useChecklistStore } from '../stores'
 
@@ -52,6 +61,11 @@ const SWIPE_THRESHOLD = 40
 // 項目のチェック状態を切り替え
 const toggleItem = (itemId: string) => {
   checklistStore.toggleItem(props.listId, itemId)
+}
+
+// 並べ替え発生時に保存
+const onReorder = () => {
+  checklistStore.saveDataToStorage()
 }
 
 // スワイプ開始
@@ -81,8 +95,6 @@ const onTouchEnd = () => {
       checklistStore.toggleIndentation(props.listId, props.item.id)
     } else {
       // 左スワイプ: アウトデント
-      // すでにトップレベルではない（親がいる）場合のみアウトデントを試みる
-      // (store側のロジックで判定される)
       checklistStore.toggleIndentation(props.listId, props.item.id)
     }
   }
@@ -110,6 +122,7 @@ const onTouchEnd = () => {
   margin-left: 24px;
   border-left: 1px solid #e0e0e0;
   padding-left: 4px;
+  min-height: 4px; /* ドラッグ先として認識されやすくするため */
 }
 
 .check-item input[type="checkbox"] {
@@ -132,7 +145,7 @@ const onTouchEnd = () => {
 }
 
 .drag-handle {
-  padding: 0 12px;
+  padding: 8px 12px;
   color: #ccc;
   cursor: grab;
   user-select: none;
