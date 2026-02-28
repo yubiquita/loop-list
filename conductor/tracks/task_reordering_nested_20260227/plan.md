@@ -14,7 +14,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Data Refactoring' (Protocol in workflow.md) 8bcda80
 
 ## Phase 3: UI Implementation (Nested Components & D&D)
-- [ ] Task: Create a recursive `ChecklistNode` component for nested items
+- [x] Task: Create a recursive `ChecklistNode` component for nested items f029bf8
 - [ ] Task: Integrate `vuedraggable` into `ChecklistNode`
 - [ ] Task: Update `DetailScreen.vue` to use the new nested component structure
 - [ ] Task: Add reordering handle UI and styling
