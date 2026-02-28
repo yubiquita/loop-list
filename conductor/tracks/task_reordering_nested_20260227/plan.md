@@ -9,8 +9,8 @@
 ## Phase 2: Data Refactoring (Store & Migration)
 - [x] Task: Create data migration utility (Flat to Nested) 8ab4ac9
 - [x] Task: Write tests for migration utility 8ab4ac9
-- [ ] Task: Update `useChecklistStore` to handle nested items (CRUD operations)
-- [ ] Task: Rewrite `checklist.store.test.ts` for nested structure
+- [x] Task: Update `useChecklistStore` to handle nested items (CRUD operations) 01537e5
+- [x] Task: Rewrite `checklist.store.test.ts` for nested structure 01537e5
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Data Refactoring' (Protocol in workflow.md)
 
 ## Phase 3: UI Implementation (Nested Components & D&D)
