@@ -6,12 +6,12 @@
 - [x] Task: Update `types/index.ts` to reflect nested `ChecklistItem` structure 0b6fb29
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Preparation' (Protocol in workflow.md) e4a5752
 
-## Phase 2: Data Refactoring (Store & Migration)
+## Phase 2: Data Refactoring (Store & Migration) [checkpoint: 8bcda80]
 - [x] Task: Create data migration utility (Flat to Nested) 8ab4ac9
 - [x] Task: Write tests for migration utility 8ab4ac9
 - [x] Task: Update `useChecklistStore` to handle nested items (CRUD operations) 01537e5
 - [x] Task: Rewrite `checklist.store.test.ts` for nested structure 01537e5
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Data Refactoring' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Data Refactoring' (Protocol in workflow.md) 8bcda80
 
 ## Phase 3: UI Implementation (Nested Components & D&D)
 - [ ] Task: Create a recursive `ChecklistNode` component for nested items
