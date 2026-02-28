@@ -15,7 +15,7 @@
 
 ## Phase 3: UI Implementation (Nested Components & D&D)
 - [x] Task: Create a recursive `ChecklistNode` component for nested items f029bf8
-- [ ] Task: Integrate `vuedraggable` into `ChecklistNode`
+- [x] Task: Integrate `vuedraggable` into `ChecklistNode` 0943c5b
 - [ ] Task: Update `DetailScreen.vue` to use the new nested component structure
 - [ ] Task: Add reordering handle UI and styling
 - [ ] Task: Ensure swipe-to-indent works with nested structure
