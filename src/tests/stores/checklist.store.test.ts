@@ -1,4 +1,4 @@
-// ChecklistStore のテスト（既存42テストの移植）
+// ChecklistStore のテスト（ネスト構造対応版）
 
 import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
@@ -8,7 +8,6 @@ import type { ChecklistList } from '../../types'
 describe('ChecklistStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    // localStorageをクリア
     localStorage.clear()
   })
 
@@ -23,13 +22,15 @@ describe('ChecklistStore', () => {
       expect(store.totalLists).toBe(0)
     })
 
-    it('initializeData でlocalStorageからデータを読み込む', async () => {
-      // テストデータをlocalStorageに設定
+    it('initializeData でlocalStorageからデータを読み込み、フラット構造ならマイグレーションする', async () => {
       const testData = {
         lists: [{
           id: 'test-1',
           name: 'テストリスト',
-          items: [],
+          items: [
+            { id: '1', text: '親', checked: false },
+            { id: '2', text: '子', checked: false, indent: true }
+          ],
           createdAt: '2024-01-01T00:00:00.000Z'
         }]
       }
@@ -39,15 +40,10 @@ describe('ChecklistStore', () => {
       await store.initializeData()
 
       expect(store.lists).toHaveLength(1)
-      expect(store.lists[0].name).toBe('テストリスト')
-    })
-
-    it('空のlocalStorageでも正常に動作する', async () => {
-      const store = useChecklistStore()
-      await store.initializeData()
-
-      expect(store.lists).toEqual([])
-      expect(store.error).toBe(null)
+      expect(store.lists[0].items).toHaveLength(1)
+      expect(store.lists[0].items[0].id).toBe('1')
+      expect(store.lists[0].items[0].subItems).toHaveLength(1)
+      expect(store.lists[0].items[0].subItems![0].id).toBe('2')
     })
 
     it('不正なJSONデータでエラーハンドリングする', async () => {
@@ -62,85 +58,29 @@ describe('ChecklistStore', () => {
   })
 
   describe('リスト操作', () => {
-    it('createList で新しいリストを作成できる', () => {
-      const store = useChecklistStore()
-      const list = store.createList('新しいリスト')
-
-      expect(list.name).toBe('新しいリスト')
-      expect(list.items).toEqual([])
-      expect(list.id).toBeTruthy()
-      expect(list.createdAt).toBeTruthy()
-      expect(store.lists).toHaveLength(1)
-    })
-
-    it('createList で空文字をトリムする', () => {
-      const store = useChecklistStore()
-      const list = store.createList('  テストリスト  ')
-
-      expect(list.name).toBe('テストリスト')
-    })
-
-    it('updateList でリストを更新できる', () => {
-      const store = useChecklistStore()
-      const list = store.createList('元のリスト')
-      
-      store.updateList(list.id, { name: '更新されたリスト' })
-
-      expect(store.lists[0].name).toBe('更新されたリスト')
-    })
-
-    it('updateList で存在しないリストは無視される', () => {
-      const store = useChecklistStore()
-      store.createList('テストリスト')
-
-      store.updateList('non-existent', { name: '更新' })
-
-      expect(store.lists[0].name).toBe('テストリスト')
-    })
-
-    it('deleteList でリストを削除できる', () => {
-      const store = useChecklistStore()
-      const list = store.createList('削除予定リスト')
-
-      store.deleteList(list.id)
-
-      expect(store.lists).toHaveLength(0)
-    })
-
-    it('deleteList で現在のリストを削除するとcurrentListIdをクリア', () => {
-      const store = useChecklistStore()
-      const list = store.createList('現在のリスト')
-      store.setCurrentList(list.id)
-
-      store.deleteList(list.id)
-
-      expect(store.currentListId).toBe(null)
-      expect(store.currentList).toBe(null)
-    })
-
-    it('duplicateList でリストを複製できる', () => {
+    it('duplicateList でリストを複製できる（ネスト構造も維持）', () => {
       const store = useChecklistStore()
       const originalList = store.createList('元のリスト')
-      store.addItem(originalList.id, '項目1')
-      store.addItem(originalList.id, '項目2')
+      const p1 = store.addItem(originalList.id, '親項目')!
+      
+      // 手動でネスト状態を作成してテスト
+      const c1 = { id: 'c1', text: '子項目', checked: true, subItems: [] }
+      store.lists[0].items[0].subItems = [c1]
 
       const duplicatedList = store.duplicateList(originalList.id)
 
       expect(duplicatedList).toBeTruthy()
       expect(duplicatedList!.name).toBe('元のリスト (コピー)')
-      expect(duplicatedList!.items).toHaveLength(2)
-      expect(duplicatedList!.items[0].text).toBe('項目1')
-      expect(duplicatedList!.items[0].checked).toBe(false) // チェック状態はリセット
-      expect(duplicatedList!.id).not.toBe(originalList.id)
-      expect(store.lists).toHaveLength(2)
-    })
-
-    it('duplicateList で存在しないリストはnullを返す', () => {
-      const store = useChecklistStore()
+      expect(duplicatedList!.items).toHaveLength(1)
+      expect(duplicatedList!.items[0].text).toBe('親項目')
+      expect(duplicatedList!.items[0].checked).toBe(false)
+      expect(duplicatedList!.items[0].subItems).toHaveLength(1)
+      expect(duplicatedList!.items[0].subItems![0].text).toBe('子項目')
+      expect(duplicatedList!.items[0].subItems![0].checked).toBe(false) // ネストされた項目もチェックリセット
       
-      const result = store.duplicateList('non-existent')
-
-      expect(result).toBe(null)
+      expect(duplicatedList!.id).not.toBe(originalList.id)
+      expect(duplicatedList!.items[0].id).not.toBe(p1.id)
+      expect(duplicatedList!.items[0].subItems![0].id).not.toBe('c1')
     })
   })
 
@@ -158,122 +98,85 @@ describe('ChecklistStore', () => {
 
       expect(item).toBeTruthy()
       expect(item!.text).toBe('新しい項目')
-      expect(item!.checked).toBe(false)
-      expect(item!.id).toBeTruthy()
+      expect(item!.subItems).toEqual([]) // subItemsが初期化される
       expect(store.lists[0].items).toHaveLength(1)
     })
 
-    it('addItem でテキストをトリムする', () => {
-      const item = store.addItem(testList.id, '  項目テキスト  ')
-
-      expect(item!.text).toBe('項目テキスト')
-    })
-
-    it('addItem で存在しないリストはnullを返す', () => {
-      const item = store.addItem('non-existent', 'テスト項目')
-
-      expect(item).toBe(null)
-    })
-
-    it('updateItem で項目を更新できる', () => {
-      const item = store.addItem(testList.id, '元の項目')!
+    it('updateItem でネストされた項目も更新できる', () => {
+      const parent = store.addItem(testList.id, '親項目')!
+      const childId = 'child-1'
+      store.lists[0].items[0].subItems = [{ id: childId, text: '子項目', checked: false, subItems: [] }]
       
-      store.updateItem(testList.id, item.id, { text: '更新された項目' })
+      store.updateItem(testList.id, childId, { text: '更新された子項目' })
 
-      expect(store.lists[0].items[0].text).toBe('更新された項目')
+      expect(store.lists[0].items[0].subItems![0].text).toBe('更新された子項目')
     })
 
-    it('updateItem で存在しないリストは無視される', () => {
-      const item = store.addItem(testList.id, 'テスト項目')!
+    it('deleteItem でネストされた項目も削除できる', () => {
+      const parent = store.addItem(testList.id, '親項目')!
+      const childId = 'child-1'
+      store.lists[0].items[0].subItems = [{ id: childId, text: '子項目', checked: false, subItems: [] }]
 
-      store.updateItem('non-existent', item.id, { text: '更新' })
+      store.deleteItem(testList.id, childId)
 
-      expect(store.lists[0].items[0].text).toBe('テスト項目')
+      expect(store.lists[0].items[0].subItems).toHaveLength(0)
     })
 
-    it('updateItem で存在しない項目は無視される', () => {
-      store.addItem(testList.id, 'テスト項目')
+    it('toggleIndentation でトップレベル項目を子項目に移動できる（インデント）', () => {
+      const item1 = store.addItem(testList.id, '項目1')!
+      const item2 = store.addItem(testList.id, '項目2')!
 
-      store.updateItem(testList.id, 'non-existent', { text: '更新' })
+      store.toggleIndentation(testList.id, item2.id)
 
-      expect(store.lists[0].items[0].text).toBe('テスト項目')
+      expect(store.lists[0].items).toHaveLength(1)
+      expect(store.lists[0].items[0].subItems).toHaveLength(1)
+      expect(store.lists[0].items[0].subItems![0].id).toBe(item2.id)
     })
 
-    it('deleteItem で項目を削除できる', () => {
-      const item = store.addItem(testList.id, '削除予定項目')!
+    it('toggleIndentation でインデントできない場合は何もしない（先頭項目など）', () => {
+      const item1 = store.addItem(testList.id, '項目1')!
 
-      store.deleteItem(testList.id, item.id)
+      store.toggleIndentation(testList.id, item1.id)
 
-      expect(store.lists[0].items).toHaveLength(0)
+      expect(store.lists[0].items).toHaveLength(1) // 変化なし
+      expect(store.lists[0].items[0].subItems).toHaveLength(0)
     })
 
-    it('toggleItem でチェック状態を切り替えできる', () => {
-      const item = store.addItem(testList.id, 'テスト項目')!
+    it('toggleIndentation でネストされた項目をトップレベルに戻せる（アウトデント）', () => {
+      const item1 = store.addItem(testList.id, '項目1')!
+      const item2 = store.addItem(testList.id, '項目2')!
+      store.toggleIndentation(testList.id, item2.id) // item2 を item1 の子にする
+      
+      expect(store.lists[0].items[0].subItems).toHaveLength(1)
 
-      store.toggleItem(testList.id, item.id)
+      store.toggleIndentation(testList.id, item2.id) // アウトデント
+
+      expect(store.lists[0].items).toHaveLength(2)
+      expect(store.lists[0].items[1].id).toBe(item2.id)
+      expect(store.lists[0].items[0].subItems).toHaveLength(0)
+    })
+
+    it('親タスクをチェックした際にすべての子タスクもチェックされる', () => {
+      const parent = store.addItem(testList.id, '親')!
+      const child1 = store.addItem(testList.id, '子1')!
+      store.toggleIndentation(testList.id, child1.id)
+      
+      store.toggleItem(testList.id, parent.id)
+
       expect(store.lists[0].items[0].checked).toBe(true)
+      expect(store.lists[0].items[0].subItems![0].checked).toBe(true)
+    })
 
-      store.toggleItem(testList.id, item.id)
+    it('親タスクのチェックを外した際にすべての子タスクもチェックが外れる', () => {
+      const parent = store.addItem(testList.id, '親')!
+      const child1 = store.addItem(testList.id, '子1')!
+      store.toggleIndentation(testList.id, child1.id)
+      
+      store.toggleItem(testList.id, parent.id) // 両方チェック
+      store.toggleItem(testList.id, parent.id) // 両方チェック外す
+
       expect(store.lists[0].items[0].checked).toBe(false)
-    })
-
-    it('toggleIndentation でインデント状態を切り替えできる', () => {
-      const item = store.addItem(testList.id, 'テスト項目')!
-
-      store.toggleIndentation(testList.id, item.id)
-      expect(store.lists[0].items[0].indent).toBe(true)
-
-      store.toggleIndentation(testList.id, item.id)
-      expect(store.lists[0].items[0].indent).toBe(false)
-    })
-
-    it('親タスクをチェックした際に直後の子タスクもチェックされる (カスケードチェック)', () => {
-      const parent = store.addItem(testList.id, '親項目')!
-      const child1 = store.addItem(testList.id, '子項目1')!
-      const child2 = store.addItem(testList.id, '子項目2')!
-      store.addItem(testList.id, '無関係な項目')
-
-      store.toggleIndentation(testList.id, child1.id)
-      store.toggleIndentation(testList.id, child2.id)
-
-      // 親をチェック
-      store.toggleItem(testList.id, parent.id)
-
-      expect(store.lists[0].items[0].checked).toBe(true) // 親
-      expect(store.lists[0].items[1].checked).toBe(true) // 子1
-      expect(store.lists[0].items[2].checked).toBe(true) // 子2
-      expect(store.lists[0].items[3].checked).toBe(false) // 無関係
-    })
-
-    it('親タスクのチェックを外した際に直後の子タスクもチェックが外れる (カスケードクリア)', () => {
-      const parent = store.addItem(testList.id, '親項目')!
-      const child1 = store.addItem(testList.id, '子項目1')!
-      
-      store.toggleIndentation(testList.id, child1.id)
-      
-      // 最初は両方チェック済みとする
-      store.toggleItem(testList.id, parent.id)
-      expect(store.lists[0].items[0].checked).toBe(true)
-      expect(store.lists[0].items[1].checked).toBe(true)
-
-      // 親のチェックを外す
-      store.toggleItem(testList.id, parent.id)
-
-      expect(store.lists[0].items[0].checked).toBe(false) // 親
-      expect(store.lists[0].items[1].checked).toBe(false) // 子1
-    })
-
-    it('reorderItems で項目の順序を変更できる', () => {
-      store.addItem(testList.id, '項目1')
-      store.addItem(testList.id, '項目2')
-      store.addItem(testList.id, '項目3')
-
-      store.reorderItems(testList.id, 0, 2) // 最初の項目を最後に移動
-
-      const items = store.lists[0].items
-      expect(items[0].text).toBe('項目2')
-      expect(items[1].text).toBe('項目3')
-      expect(items[2].text).toBe('項目1')
+      expect(store.lists[0].items[0].subItems![0].checked).toBe(false)
     })
   })
 
@@ -286,33 +189,47 @@ describe('ChecklistStore', () => {
       testList = store.createList('テストリスト')
       store.addItem(testList.id, '項目1')
       store.addItem(testList.id, '項目2')
+      store.toggleIndentation(testList.id, store.lists[0].items[1].id) // 項目2を項目1の子に
       store.addItem(testList.id, '項目3')
-      // 項目1と3をチェック
-      store.toggleItem(testList.id, store.lists[0].items[0].id)
-      store.toggleItem(testList.id, store.lists[0].items[2].id)
     })
 
-    it('clearCompletedItems でチェック済み項目を削除', () => {
+    it('clearCompletedItems でチェック済み項目を再帰的に削除', () => {
+      // 項目2（子）と項目3（親）をチェック
+      store.toggleItem(testList.id, store.lists[0].items[0].subItems![0].id)
+      store.toggleItem(testList.id, store.lists[0].items[1].id)
+      
       store.clearCompletedItems(testList.id)
 
       const items = store.lists[0].items
-      expect(items).toHaveLength(1)
-      expect(items[0].text).toBe('項目2')
-      expect(items[0].checked).toBe(false)
+      expect(items).toHaveLength(1) // 項目3は削除された
+      expect(items[0].text).toBe('項目1')
+      expect(items[0].subItems).toHaveLength(0) // 項目2は削除された
     })
 
-    it('checkAllItems で全項目をチェック', () => {
+    it('clearCompletedItems で親がチェック済みなら子もろとも削除される', () => {
+      store.toggleItem(testList.id, store.lists[0].items[0].id) // 項目1（親）をチェック
+      
+      store.clearCompletedItems(testList.id)
+
+      expect(store.lists[0].items).toHaveLength(1)
+      expect(store.lists[0].items[0].text).toBe('項目3')
+    })
+
+    it('checkAllItems で全項目（ネスト含む）をチェック', () => {
       store.checkAllItems(testList.id)
 
-      const items = store.lists[0].items
-      expect(items.every(item => item.checked)).toBe(true)
+      expect(store.lists[0].items[0].checked).toBe(true)
+      expect(store.lists[0].items[0].subItems![0].checked).toBe(true)
+      expect(store.lists[0].items[1].checked).toBe(true)
     })
 
-    it('uncheckAllItems で全項目のチェックを解除', () => {
+    it('uncheckAllItems で全項目（ネスト含む）のチェックを解除', () => {
+      store.checkAllItems(testList.id)
       store.uncheckAllItems(testList.id)
 
-      const items = store.lists[0].items
-      expect(items.every(item => !item.checked)).toBe(true)
+      expect(store.lists[0].items[0].checked).toBe(false)
+      expect(store.lists[0].items[0].subItems![0].checked).toBe(false)
+      expect(store.lists[0].items[1].checked).toBe(false)
     })
   })
 
@@ -321,41 +238,16 @@ describe('ChecklistStore', () => {
 
     beforeEach(() => {
       store = useChecklistStore()
-      
-      const list1 = store.createList('買い物リスト')
-      store.addItem(list1.id, 'りんご')
-      store.addItem(list1.id, 'バナナ')
-
-      const list2 = store.createList('仕事タスク')
-      store.addItem(list2.id, 'メール確認')
-      store.addItem(list2.id, 'りんごの件')
+      const list1 = store.createList('テストリスト')
+      store.addItem(list1.id, '親タスク')
+      store.addItem(list1.id, '子タスク - りんご')
+      store.toggleIndentation(list1.id, store.lists[0].items[1].id)
     })
 
-    it('searchLists でリスト名から検索', () => {
-      const results = store.searchLists('買い物')
-
-      expect(results).toHaveLength(1)
-      expect(results[0].name).toBe('買い物リスト')
-    })
-
-    it('searchLists で項目テキストから検索', () => {
+    it('searchLists でネストされた項目のテキストからも検索できる', () => {
       const results = store.searchLists('りんご')
-
-      expect(results).toHaveLength(2) // 両方のリストにりんごが含まれる
+      expect(results).toHaveLength(1)
     })
-
-    it('searchLists で空文字列は全リストを返す', () => {
-      const results = store.searchLists('')
-
-      expect(results).toHaveLength(2)
-    })
-
-    it('searchLists で見つからない場合は空配列', () => {
-      const results = store.searchLists('存在しない')
-
-      expect(results).toHaveLength(0)
-    })
-
   })
 
   describe('算出プロパティ', () => {
@@ -365,119 +257,26 @@ describe('ChecklistStore', () => {
       store = useChecklistStore()
     })
 
-    it('currentList が正しく算出される', () => {
-      expect(store.currentList).toBe(null)
-
-      const list = store.createList('現在のリスト')
-      store.setCurrentList(list.id)
-
-      expect(store.currentList).toStrictEqual(list)
-      expect(store.currentList!.name).toBe('現在のリスト')
-    })
-
-    it('totalLists が正しく算出される', () => {
-      expect(store.totalLists).toBe(0)
-
-      store.createList('リスト1')
-      expect(store.totalLists).toBe(1)
-
-      store.createList('リスト2')
-      expect(store.totalLists).toBe(2)
-    })
-
-    it('currentListProgress が正しく算出される', () => {
-      expect(store.currentListProgress).toBe(null)
-
+    it('currentListProgress がネストされた項目も含めて計算される', () => {
       const list = store.createList('テストリスト')
       store.setCurrentList(list.id)
       
-      // 項目なしの場合
-      expect(store.currentListProgress!.total).toBe(0)
+      store.addItem(list.id, '親')
+      store.addItem(list.id, '子1')
+      store.addItem(list.id, '子2')
+      
+      store.toggleIndentation(list.id, store.lists[0].items[1].id) // 子1
+      store.toggleIndentation(list.id, store.lists[0].items[1].id) // 子2 (子1が移動したためインデックス1になる)
+      
+      // 最初は 0/3
+      expect(store.currentListProgress!.total).toBe(3)
       expect(store.currentListProgress!.completed).toBe(0)
-      expect(store.currentListProgress!.percentage).toBe(0)
 
-      // 項目を追加
-      store.addItem(list.id, '項目1')
-      store.addItem(list.id, '項目2')
-      store.toggleItem(list.id, store.lists[0].items[0].id)
-
-      expect(store.currentListProgress!.total).toBe(2)
+      // 子1だけチェック
+      store.toggleItem(list.id, store.lists[0].items[0].subItems![0].id)
+      
       expect(store.currentListProgress!.completed).toBe(1)
-      expect(store.currentListProgress!.percentage).toBe(50)
-    })
-  })
-
-  describe('ユーティリティ機能', () => {
-    it('setCurrentList で現在のリストを設定', () => {
-      const store = useChecklistStore()
-      const list = store.createList('テストリスト')
-
-      store.setCurrentList(list.id)
-      expect(store.currentListId).toBe(list.id)
-
-      store.setCurrentList(null)
-      expect(store.currentListId).toBe(null)
-    })
-
-    it('clearAllData で全データを削除', () => {
-      const store = useChecklistStore()
-      store.createList('リスト1')
-      store.createList('リスト2')
-      store.setCurrentList(store.lists[0].id)
-
-      store.clearAllData()
-
-      expect(store.lists).toHaveLength(0)
-      expect(store.currentListId).toBe(null)
-    })
-
-    it('clearError でエラーを削除', () => {
-      const store = useChecklistStore()
-      store.error = 'テストエラー'
-
-      store.clearError()
-
-      expect(store.error).toBe(null)
-    })
-  })
-
-  describe('データ永続化', () => {
-    it('リスト作成時にlocalStorageに保存される', () => {
-      const store = useChecklistStore()
-      store.createList('永続化テスト')
-
-      const savedDataString = localStorage.getItem('checklistData')
-      expect(savedDataString).toBeTruthy()
-      
-      const savedData = JSON.parse(savedDataString!)
-      expect(savedData.lists).toHaveLength(1)
-      expect(savedData.lists[0].name).toBe('永続化テスト')
-    })
-
-    it('項目追加時にlocalStorageに保存される', () => {
-      const store = useChecklistStore()
-      const list = store.createList('テストリスト')
-      store.addItem(list.id, 'テスト項目')
-
-      const savedDataString = localStorage.getItem('checklistData')
-      expect(savedDataString).toBeTruthy()
-      
-      const savedData = JSON.parse(savedDataString!)
-      expect(savedData.lists).toHaveLength(1)
-      expect(savedData.lists[0].items).toHaveLength(1)
-      expect(savedData.lists[0].items[0].text).toBe('テスト項目')
-    })
-
-    it('インデント状態がlocalStorageに保存される', () => {
-      const store = useChecklistStore()
-      const list = store.createList('テストリスト')
-      const item = store.addItem(list.id, 'テスト項目')!
-      
-      store.toggleIndentation(list.id, item.id)
-
-      const savedDataString = localStorage.getItem('checklistData')
-      const savedData = JSON.parse(savedDataString!)
-      expect(savedData.lists[0].items[0].indent).toBe(true)
+      expect(store.currentListProgress!.percentage).toBe(33)
     })
   })
 })

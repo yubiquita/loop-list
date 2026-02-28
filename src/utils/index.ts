@@ -6,7 +6,7 @@ import type { ChecklistItem, ProgressInfo } from '../types'
  * ユニークなIDを生成
  */
 export function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2)
+  return Date.now().toString(36) + Math.random().toString(36).substring(2)
 }
 
 /**
@@ -17,11 +17,24 @@ export function formatDate(date: Date): string {
 }
 
 /**
- * プログレス計算
+ * プログレス計算（ネスト構造に対応）
  */
 export function calculateProgress(items: ChecklistItem[]): ProgressInfo {
-  const total = items.length
-  const completed = items.filter(item => item.checked).length
+  let total = 0
+  let completed = 0
+
+  const countItems = (list: ChecklistItem[]) => {
+    for (const item of list) {
+      total++
+      if (item.checked) completed++
+      if (item.subItems && item.subItems.length > 0) {
+        countItems(item.subItems)
+      }
+    }
+  }
+
+  countItems(items)
+
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
   
   return {

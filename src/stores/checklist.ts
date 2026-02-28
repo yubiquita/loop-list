@@ -5,6 +5,7 @@ import { ref, computed } from 'vue'
 import type { ChecklistList, ChecklistItem, ChecklistData, ProgressInfo } from '../types'
 import { generateId, formatDate, calculateProgress, reorderArray } from '../utils'
 import { loadData, saveData } from '../utils/storage'
+import { migrateFlatToNested } from '../utils/migration'
 
 export const useChecklistStore = defineStore('checklist', () => {
   // 状態
@@ -26,6 +27,30 @@ export const useChecklistStore = defineStore('checklist', () => {
     return calculateProgress(currentList.value.items)
   })
 
+  // 内部ユーティリティ：アイテムの場所を検索
+  const findItemLocation = (items: ChecklistItem[], targetId: string, parentItem: ChecklistItem | null = null): { array: ChecklistItem[], index: number, parentItem: ChecklistItem | null } | null => {
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].id === targetId) {
+        return { array: items, index: i, parentItem }
+      }
+      if (items[i].subItems && items[i].subItems!.length > 0) {
+        const found = findItemLocation(items[i].subItems!, targetId, items[i])
+        if (found) return found
+      }
+    }
+    return null
+  }
+
+  // 内部ユーティリティ：チェック状態を再帰的に適用
+  const setCheckRecursive = (items: ChecklistItem[], checked: boolean) => {
+    items.forEach(item => {
+      item.checked = checked
+      if (item.subItems && item.subItems.length > 0) {
+        setCheckRecursive(item.subItems, checked)
+      }
+    })
+  }
+
   // データ初期化
   const initializeData = async () => {
     isLoading.value = true
@@ -34,7 +59,11 @@ export const useChecklistStore = defineStore('checklist', () => {
     try {
       const data = loadData()
       if (data && data.lists) {
-        lists.value = data.lists
+        // ロード時に過去のフラット構造データをネスト構造に移行する
+        lists.value = data.lists.map(list => ({
+          ...list,
+          items: migrateFlatToNested(list.items)
+        }))
       }
     } catch (err) {
       error.value = 'データの読み込みに失敗しました'
@@ -97,14 +126,17 @@ export const useChecklistStore = defineStore('checklist', () => {
     const originalList = lists.value.find(list => list.id === listId)
     if (!originalList) return null
 
+    const cloneItem = (item: ChecklistItem): ChecklistItem => ({
+      ...item,
+      id: generateId(),
+      checked: false,
+      subItems: item.subItems ? item.subItems.map(cloneItem) : []
+    })
+
     const duplicatedList: ChecklistList = {
       id: generateId(),
       name: `${originalList.name} (コピー)`,
-      items: originalList.items.map(item => ({
-        ...item,
-        id: generateId(),
-        checked: false
-      })),
+      items: originalList.items.map(cloneItem),
       createdAt: formatDate(new Date())
     }
 
@@ -121,7 +153,8 @@ export const useChecklistStore = defineStore('checklist', () => {
     const newItem: ChecklistItem = {
       id: generateId(),
       text: text.trim(),
-      checked: false
+      checked: false,
+      subItems: []
     }
 
     list.items.push(newItem)
@@ -133,10 +166,10 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    const itemIndex = list.items.findIndex(item => item.id === itemId)
-    if (itemIndex !== -1) {
-      list.items[itemIndex] = { ...list.items[itemIndex], ...updates }
-        saveDataToStorage()
+    const location = findItemLocation(list.items, itemId)
+    if (location) {
+      location.array[location.index] = { ...location.array[location.index], ...updates }
+      saveDataToStorage()
     }
   }
 
@@ -144,10 +177,10 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    const itemIndex = list.items.findIndex(item => item.id === itemId)
-    if (itemIndex !== -1) {
-      list.items.splice(itemIndex, 1)
-        saveDataToStorage()
+    const location = findItemLocation(list.items, itemId)
+    if (location) {
+      location.array.splice(location.index, 1)
+      saveDataToStorage()
     }
   }
 
@@ -155,20 +188,14 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    const itemIndex = list.items.findIndex(item => item.id === itemId)
-    if (itemIndex !== -1) {
-      const item = list.items[itemIndex]
+    const location = findItemLocation(list.items, itemId)
+    if (location) {
+      const item = location.array[location.index]
       item.checked = !item.checked
       
-      // カスケードチェック/クリア
-      // 対象項目の直後に続くインデントされた項目を連動させる
-      for (let i = itemIndex + 1; i < list.items.length; i++) {
-        const nextItem = list.items[i]
-        if (nextItem.indent) {
-          nextItem.checked = item.checked
-        } else {
-          break
-        }
+      // 子要素もすべて同じ状態にする（カスケード）
+      if (item.subItems && item.subItems.length > 0) {
+        setCheckRecursive(item.subItems, item.checked)
       }
       
       saveDataToStorage()
@@ -179,13 +206,32 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    const item = list.items.find(item => item.id === itemId)
-    if (item) {
-      item.indent = !item.indent
-      saveDataToStorage()
+    const location = findItemLocation(list.items, itemId)
+    if (!location) return
+
+    if (location.parentItem === null) {
+      // トップレベルの項目をインデントする (直前の項目の subItems に移動)
+      if (location.index > 0) {
+        const item = location.array.splice(location.index, 1)[0]
+        const prevItem = location.array[location.index - 1]
+        if (!prevItem.subItems) prevItem.subItems = []
+        prevItem.subItems.push(item)
+        saveDataToStorage()
+      }
+    } else {
+      // ネストされた項目をアウトデントする (トップレベルに戻す)
+      // 現在は1階層のみを想定しているため、トップレベルに移動させる
+      const parentLoc = findItemLocation(list.items, location.parentItem.id)
+      if (parentLoc) {
+        const item = location.array.splice(location.index, 1)[0]
+        // 親項目の直後に配置
+        parentLoc.array.splice(parentLoc.index + 1, 0, item)
+        saveDataToStorage()
+      }
     }
   }
 
+  // ドラッグ＆ドロップ用の一時的な並び替え（D&Dは直接配列を変更するため明示的には不要だが後方互換性のため維持）
   const reorderItems = (listId: string, fromIndex: number, toIndex: number) => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
@@ -199,7 +245,16 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    list.items = list.items.filter(item => !item.checked)
+    const filterCompleted = (items: ChecklistItem[]): ChecklistItem[] => {
+      return items
+        .filter(item => !item.checked)
+        .map(item => ({
+          ...item,
+          subItems: item.subItems ? filterCompleted(item.subItems) : []
+        }))
+    }
+
+    list.items = filterCompleted(list.items)
     saveDataToStorage()
   }
 
@@ -207,9 +262,7 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    list.items.forEach(item => {
-      item.checked = true
-    })
+    setCheckRecursive(list.items, true)
     saveDataToStorage()
   }
 
@@ -217,9 +270,7 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    list.items.forEach(item => {
-      item.checked = false
-    })
+    setCheckRecursive(list.items, false)
     saveDataToStorage()
   }
 
@@ -228,12 +279,18 @@ export const useChecklistStore = defineStore('checklist', () => {
     if (!query.trim()) return lists.value
     
     const lowercaseQuery = query.toLowerCase()
+
+    const matchItem = (item: ChecklistItem): boolean => {
+      if (item.text.toLowerCase().includes(lowercaseQuery)) return true
+      if (item.subItems && item.subItems.some(matchItem)) return true
+      return false
+    }
+
     return lists.value.filter(list => 
       list.name.toLowerCase().includes(lowercaseQuery) ||
-      list.items.some(item => item.text.toLowerCase().includes(lowercaseQuery))
+      list.items.some(matchItem)
     )
   }
-
 
   // 現在のリスト設定
   const setCurrentList = (listId: string | null) => {
@@ -253,44 +310,29 @@ export const useChecklistStore = defineStore('checklist', () => {
   }
 
   return {
-    // 状態
     lists,
     currentListId,
     isLoading,
     error,
-    
-    // 算出プロパティ
     currentList,
     totalLists,
     currentListProgress,
-    
-    // メソッド
     initializeData,
     saveDataToStorage,
-    
-    // リスト操作
     createList,
     updateList,
     deleteList,
     duplicateList,
-    
-    // 項目操作
     addItem,
     updateItem,
     deleteItem,
     toggleItem,
     toggleIndentation,
     reorderItems,
-    
-    // 一括操作
     clearCompletedItems,
     checkAllItems,
     uncheckAllItems,
-    
-    // 検索とフィルタリング
     searchLists,
-    
-    // ユーティリティ
     setCurrentList,
     clearAllData,
     clearError
