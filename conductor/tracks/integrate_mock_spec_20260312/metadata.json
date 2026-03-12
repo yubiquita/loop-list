@@ -1,0 +1,8 @@
+{
+  "track_id": "integrate_mock_spec_20260312",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-12T00:00:00Z",
+  "updated_at": "2026-03-12T00:00:00Z",
+  "description": "@ref/loop-list-mock.jsx の仕様を取り込みたい。現在のソートや追加、インデントの仕様を見直したい"
+}
