@@ -7,10 +7,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Data & Logic' (Protocol in workflow.md) [2a86906]
 
 ## Phase 2: Swipe Indent with Visual Feedback
-- [ ] Task: Update `ChecklistNode.vue` to handle touch swipe events.
-- [ ] Task: Add background icons and labels for swipe feedback (Indent/Outdent).
-- [ ] Task: Implement indentation change logic triggered by swipe.
-- [ ] Task: Write component tests for swipe interaction (mocking touch events).
+- [x] Task: Update `ChecklistNode.vue` to handle touch swipe events.
+- [x] Task: Add background icons and labels for swipe feedback (Indent/Outdent).
+- [x] Task: Implement indentation change logic triggered by swipe.
+- [x] Task: Write component tests for swipe interaction (mocking touch events).
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Swipe Interaction' (Protocol in workflow.md)
 
 ## Phase 3: Smart Reordering (Block Move)
