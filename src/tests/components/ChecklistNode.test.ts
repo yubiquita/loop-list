@@ -11,11 +11,9 @@ describe('ChecklistNode.vue', () => {
 
   const mockItem: ChecklistItem = {
     id: '1',
-    text: 'Parent Item',
+    text: 'Test Item',
     checked: false,
-    subItems: [
-      { id: '2', text: 'Child Item', checked: false, subItems: [] }
-    ]
+    indent: 0
   }
 
   it('renders item text correctly', () => {
@@ -25,32 +23,34 @@ describe('ChecklistNode.vue', () => {
         listId: 'list-1'
       }
     })
-    expect(wrapper.text()).toContain('Parent Item')
+
+    expect(wrapper.text()).toContain('Test Item')
   })
 
-  it('renders sub-items recursively', () => {
+  it('reflects checked state correctly', () => {
+    const checkedItem = { ...mockItem, checked: true }
     const wrapper = mount(ChecklistNode, {
       props: {
-        item: mockItem,
+        item: checkedItem,
         listId: 'list-1'
       }
     })
-    // Parent text and Child text should both be present
-    expect(wrapper.text()).toContain('Parent Item')
-    expect(wrapper.text()).toContain('Child Item')
-  })
 
-  it('calls toggleItem when checkbox is clicked', async () => {
-    // Note: Since ChecklistNode uses the store directly in real implementation,
-    // we should check if the store action is called or if the UI reflects the change if possible.
-    // For now, let's just ensure it renders.
-    const wrapper = mount(ChecklistNode, {
-      props: {
-        item: mockItem,
-        listId: 'list-1'
-      }
-    })
     const checkbox = wrapper.find('input[type="checkbox"]')
-    expect(checkbox.exists()).toBe(true)
+    expect((checkbox.element as HTMLInputElement).checked).toBe(true)
+    expect(wrapper.find('.check-item').classes()).toContain('checked')
+  })
+
+  it('applies indentation margin correctly', () => {
+    const indentedItem = { ...mockItem, indent: 1 }
+    const wrapper = mount(ChecklistNode, {
+      props: {
+        item: indentedItem,
+        listId: 'list-1'
+      }
+    })
+
+    const container = wrapper.find('.node-container')
+    expect((container.element as HTMLElement).style.marginLeft).toBe('24px')
   })
 })
