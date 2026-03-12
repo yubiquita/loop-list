@@ -12,7 +12,7 @@
 
     <!-- 項目一覧 (ネストされたコンポーネント構造) -->
     <div class="item-list">
-      <div v-if="!currentList || items.length === 0" class="empty-message">
+      <div v-if="!currentList || currentList.items.length === 0" class="empty-message">
         <p>項目がありません</p>
         <p>編集ボタンから項目を追加してください</p>
       </div>
@@ -20,17 +20,16 @@
       <div v-else>
         <!-- トップレベル項目のドラッグ＆ドロップ対応 -->
         <draggable
-          v-model="items"
+          v-model="currentList.items"
           handle=".drag-handle"
           item-key="id"
-          group="tasks"
           :animation="200"
-          tag="div"
+          @change="onReorder"
         >
           <template #item="{ element }">
             <ChecklistNode
               :item="element"
-              :listId="currentList!.id"
+              :listId="currentList.id"
             />
           </template>
         </draggable>
@@ -38,7 +37,7 @@
     </div>
 
     <!-- アクションボタン -->
-    <div v-if="currentList && items.length > 0" class="action-buttons">
+    <div v-if="currentList && currentList.items.length > 0" class="action-buttons">
       <button class="reset-btn" @click="resetCheckedItems">チェックをリセット</button>
     </div>
   </div>
@@ -63,16 +62,6 @@ const uiStore = useUIStore()
 // 現在のリスト
 const currentList = computed(() => checklistStore.currentList)
 
-// 書き込み可能な算出プロパティを使用して vuedraggable とストアを同期
-const items = computed({
-  get: () => currentList.value?.items || [],
-  set: (newItems) => {
-    if (currentList.value) {
-      checklistStore.updateList(currentList.value.id, { items: newItems })
-    }
-  }
-})
-
 // プログレス情報
 const progress = computed(() => {
   if (!currentList.value) {
@@ -80,6 +69,11 @@ const progress = computed(() => {
   }
   return calculateProgress(currentList.value.items)
 })
+
+// 並べ替え発生時に保存
+const onReorder = () => {
+  checklistStore.saveDataToStorage()
+}
 
 // チェック済み項目をリセット
 const resetCheckedItems = () => {

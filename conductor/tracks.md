@@ -7,5 +7,5 @@
 
 ---
 
-- [~] **Track: @ref/loop-list-mock.jsx の仕様を取り込みたい。現在のソートや追加、インデントの仕様を見直したい**
+- [ ] **Track: @ref/loop-list-mock.jsx の仕様を取り込みたい。現在のソートや追加、インデントの仕様を見直したい**
 *Link: [./tracks/integrate_mock_spec_20260312/](./tracks/integrate_mock_spec_20260312/)*

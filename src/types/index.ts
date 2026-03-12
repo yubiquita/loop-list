@@ -4,7 +4,8 @@ export interface ChecklistItem {
   id: string
   text: string
   checked: boolean
-  indent: number
+  indent?: boolean
+  subItems?: ChecklistItem[]
 }
 
 export interface ChecklistList {

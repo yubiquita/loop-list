@@ -5,6 +5,7 @@ import { ref, computed } from 'vue'
 import type { ChecklistList, ChecklistItem, ChecklistData, ProgressInfo } from '../types'
 import { generateId, formatDate, calculateProgress, reorderArray } from '../utils'
 import { loadData, saveData } from '../utils/storage'
+import { migrateFlatToNested } from '../utils/migration'
 
 export const useChecklistStore = defineStore('checklist', () => {
   // 状態
@@ -26,41 +27,28 @@ export const useChecklistStore = defineStore('checklist', () => {
     return calculateProgress(currentList.value.items)
   })
 
-  /**
-   * 古いデータ構造（ネストされた subItems または indent: boolean）から
-   * 新しいフラットな indent: number 構造へ変換します。
-   */
-  const migrateToFlatStructure = (items: any[]): ChecklistItem[] => {
-    const flatItems: ChecklistItem[] = []
-
-    const flatten = (itemsToFlatten: any[], currentIndent: number) => {
-      itemsToFlatten.forEach(item => {
-        // 既存の indent プロパティ（boolean または number）を考慮
-        let indentValue = 0
-        if (typeof item.indent === 'number') {
-          indentValue = item.indent
-        } else if (item.indent === true) {
-          indentValue = currentIndent + 1
-        } else {
-          indentValue = currentIndent
-        }
-
-        const newItem: ChecklistItem = {
-          id: item.id || generateId(),
-          text: item.text || '',
-          checked: !!item.checked,
-          indent: indentValue
-        }
-        flatItems.push(newItem)
-
-        if (item.subItems && Array.isArray(item.subItems) && item.subItems.length > 0) {
-          flatten(item.subItems, indentValue + 1)
-        }
-      })
+  // 内部ユーティリティ：アイテムの場所を検索
+  const findItemLocation = (items: ChecklistItem[], targetId: string, parentItem: ChecklistItem | null = null): { array: ChecklistItem[], index: number, parentItem: ChecklistItem | null } | null => {
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].id === targetId) {
+        return { array: items, index: i, parentItem }
+      }
+      if (items[i].subItems && items[i].subItems!.length > 0) {
+        const found = findItemLocation(items[i].subItems!, targetId, items[i])
+        if (found) return found
+      }
     }
+    return null
+  }
 
-    flatten(items, 0)
-    return flatItems
+  // 内部ユーティリティ：チェック状態を再帰的に適用
+  const setCheckRecursive = (items: ChecklistItem[], checked: boolean) => {
+    items.forEach(item => {
+      item.checked = checked
+      if (item.subItems && item.subItems.length > 0) {
+        setCheckRecursive(item.subItems, checked)
+      }
+    })
   }
 
   // データ初期化
@@ -71,9 +59,10 @@ export const useChecklistStore = defineStore('checklist', () => {
     try {
       const data = loadData()
       if (data && data.lists) {
+        // ロード時に過去のフラット構造データをネスト構造に移行する
         lists.value = data.lists.map(list => ({
           ...list,
-          items: migrateToFlatStructure(list.items)
+          items: migrateFlatToNested(list.items)
         }))
       }
     } catch (err) {
@@ -137,14 +126,17 @@ export const useChecklistStore = defineStore('checklist', () => {
     const originalList = lists.value.find(list => list.id === listId)
     if (!originalList) return null
 
+    const cloneItem = (item: ChecklistItem): ChecklistItem => ({
+      ...item,
+      id: generateId(),
+      checked: false,
+      subItems: item.subItems ? item.subItems.map(cloneItem) : []
+    })
+
     const duplicatedList: ChecklistList = {
       id: generateId(),
       name: `${originalList.name} (コピー)`,
-      items: originalList.items.map(item => ({
-        ...item,
-        id: generateId(),
-        checked: false
-      })),
+      items: originalList.items.map(cloneItem),
       createdAt: formatDate(new Date())
     }
 
@@ -162,7 +154,7 @@ export const useChecklistStore = defineStore('checklist', () => {
       id: generateId(),
       text: text.trim(),
       checked: false,
-      indent: 0
+      subItems: []
     }
 
     list.items.push(newItem)
@@ -174,9 +166,9 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    const index = list.items.findIndex(item => item.id === itemId)
-    if (index !== -1) {
-      Object.assign(list.items[index], updates)
+    const location = findItemLocation(list.items, itemId)
+    if (location) {
+      location.array[location.index] = { ...location.array[location.index], ...updates }
       saveDataToStorage()
     }
   }
@@ -185,9 +177,9 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    const index = list.items.findIndex(item => item.id === itemId)
-    if (index !== -1) {
-      list.items.splice(index, 1)
+    const location = findItemLocation(list.items, itemId)
+    if (location) {
+      location.array.splice(location.index, 1)
       saveDataToStorage()
     }
   }
@@ -196,94 +188,55 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    const index = list.items.findIndex(item => item.id === itemId)
-    if (index === -1) return
-
-    const item = list.items[index]
-    const newChecked = !item.checked
-    item.checked = newChecked
-
-    // カスケードチェック：子タスクへの連動
-    for (let i = index + 1; i < list.items.length; i++) {
-      if (list.items[i].indent <= item.indent) break
-      list.items[i].checked = newChecked
-    }
-
-    // カスケードチェック：親タスクへの連動
-    let currentChildIndent = item.indent
-    let searchIndex = index
-    
-    while (currentChildIndent > 0) {
-      // 親を探す
-      let parentIndex = -1
-      for (let i = searchIndex - 1; i >= 0; i--) {
-        if (list.items[i].indent < currentChildIndent) {
-          parentIndex = i
-          break
-        }
-      }
-
-      if (parentIndex === -1) break
-
-      const parent = list.items[parentIndex]
-      const parentIndent = parent.indent
-
-      // 親のすべての子がチェックされているか確認
-      let allChildrenChecked = true
-      for (let i = parentIndex + 1; i < list.items.length; i++) {
-        if (list.items[i].indent <= parentIndent) break
-        // 直系の子（親のインデント+1）だけでなく、全子孫を見るのが一般的だが
-        // モックの仕様に合わせるなら直系の子の状態を見る場合もある。
-        // ここでは「配下の子すべて」の状態を反映させる。
-        if (!list.items[i].checked) {
-          allChildrenChecked = false
-          break
-        }
-      }
-
-      parent.checked = allChildrenChecked
+    const location = findItemLocation(list.items, itemId)
+    if (location) {
+      const item = location.array[location.index]
+      item.checked = !item.checked
       
-      // さらに上の親へ
-      currentChildIndent = parentIndent
-      searchIndex = parentIndex
+      // 子要素もすべて同じ状態にする（カスケード）
+      if (item.subItems && item.subItems.length > 0) {
+        setCheckRecursive(item.subItems, item.checked)
+      }
+      
+      saveDataToStorage()
     }
-
-    saveDataToStorage()
   }
 
   const toggleIndentation = (listId: string, itemId: string) => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    const index = list.items.findIndex(item => item.id === itemId)
-    if (index === -1) return
+    const location = findItemLocation(list.items, itemId)
+    if (!location) return
 
-    const item = list.items[index]
-
-    if (item.indent === 0) {
-      // インデント（0 -> 1）
-      if (index > 0) {
-        item.indent = 1
+    if (location.parentItem === null) {
+      // トップレベルの項目をインデントする (直前の項目の subItems に移動)
+      if (location.index > 0) {
+        const item = location.array.splice(location.index, 1)[0]
+        const prevItem = location.array[location.index - 1]
+        if (!prevItem.subItems) prevItem.subItems = []
+        prevItem.subItems.push(item)
+        saveDataToStorage()
       }
     } else {
-      // アウトデント（1 -> 0）
-      item.indent = 0
+      // ネストされた項目をアウトデントする (トップレベルに戻す)
+      // 現在は1階層のみを想定しているため、トップレベルに移動させる
+      const parentLoc = findItemLocation(list.items, location.parentItem.id)
+      if (parentLoc) {
+        const item = location.array.splice(location.index, 1)[0]
+        // 親項目の直後に配置
+        parentLoc.array.splice(parentLoc.index + 1, 0, item)
+        saveDataToStorage()
+      }
     }
-    
-    saveDataToStorage()
   }
 
+  // ドラッグ＆ドロップ用の一時的な並び替え（D&Dは直接配列を変更するため明示的には不要だが後方互換性のため維持）
   const reorderItems = (listId: string, fromIndex: number, toIndex: number) => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
     list.items = reorderArray(list.items, fromIndex, toIndex)
-    
-    // データの整合性維持：先頭の項目は必ず indent 0
-    if (list.items.length > 0 && list.items[0].indent !== 0) {
-      list.items[0].indent = 0
-    }
-    
     saveDataToStorage()
   }
 
@@ -292,7 +245,16 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    list.items = list.items.filter(item => !item.checked)
+    const filterCompleted = (items: ChecklistItem[]): ChecklistItem[] => {
+      return items
+        .filter(item => !item.checked)
+        .map(item => ({
+          ...item,
+          subItems: item.subItems ? filterCompleted(item.subItems) : []
+        }))
+    }
+
+    list.items = filterCompleted(list.items)
     saveDataToStorage()
   }
 
@@ -300,7 +262,7 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    list.items.forEach(item => item.checked = true)
+    setCheckRecursive(list.items, true)
     saveDataToStorage()
   }
 
@@ -308,7 +270,7 @@ export const useChecklistStore = defineStore('checklist', () => {
     const list = lists.value.find(l => l.id === listId)
     if (!list) return
 
-    list.items.forEach(item => item.checked = false)
+    setCheckRecursive(list.items, false)
     saveDataToStorage()
   }
 
@@ -318,9 +280,15 @@ export const useChecklistStore = defineStore('checklist', () => {
     
     const lowercaseQuery = query.toLowerCase()
 
+    const matchItem = (item: ChecklistItem): boolean => {
+      if (item.text.toLowerCase().includes(lowercaseQuery)) return true
+      if (item.subItems && item.subItems.some(matchItem)) return true
+      return false
+    }
+
     return lists.value.filter(list => 
       list.name.toLowerCase().includes(lowercaseQuery) ||
-      list.items.some(item => item.text.toLowerCase().includes(lowercaseQuery))
+      list.items.some(matchItem)
     )
   }
 
