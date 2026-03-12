@@ -6,12 +6,12 @@
 - [x] Task: Create tests for Cascade Check (parent toggle checks children, children toggle affects parent).
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Data & Logic' (Protocol in workflow.md) [2a86906]
 
-## Phase 2: Swipe Indent with Visual Feedback
+## Phase 2: Swipe Indent with Visual Feedback [checkpoint: 482f320]
 - [x] Task: Update `ChecklistNode.vue` to handle touch swipe events.
 - [x] Task: Add background icons and labels for swipe feedback (Indent/Outdent).
 - [x] Task: Implement indentation change logic triggered by swipe.
 - [x] Task: Write component tests for swipe interaction (mocking touch events).
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Swipe Interaction' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Swipe Interaction' (Protocol in workflow.md) [482f320]
 
 ## Phase 3: Smart Reordering (Block Move)
 - [ ] Task: Implement logic to identify "blocks" (parent + its children) during drag.
