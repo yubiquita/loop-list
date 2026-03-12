@@ -1,10 +1,10 @@
 # Implementation Plan: Integrate Mock-up Features
 
-## Phase 1: Data Migration & Cascade Check (TDD)
+## Phase 1: Data Migration & Cascade Check (TDD) [checkpoint: 2a86906]
 - [x] Task: Update checklist store to support flat structure and indent property.
 - [x] Task: Implement Cascade Check logic in the store (recursive update of children and parent).
 - [x] Task: Create tests for Cascade Check (parent toggle checks children, children toggle affects parent).
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Data & Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Data & Logic' (Protocol in workflow.md) [2a86906]
 
 ## Phase 2: Swipe Indent with Visual Feedback
 - [ ] Task: Update `ChecklistNode.vue` to handle touch swipe events.
