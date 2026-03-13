@@ -10,8 +10,8 @@
 ## Implementation Steps
 
 ### Phase 1: Preparation & Testing
-- [ ] Task: 既存の削除機能に関するテストを確認、または新規作成する。
-- [ ] Task: スワイプ操作によるインデント操作の既存テストを確認する。
+- [x] Task: 既存の削除機能に関するテストを確認、または新規作成する。 c3c5730
+- [~] Task: スワイプ操作によるインデント操作の既存テストを確認する。
 
 ### Phase 2: Refactor Swipe Logic
 - [ ] Task: `TaskItem.vue` の `handleTouchMove` を修正し、Level 0 アイテムでの左スワイプを許可する。
