@@ -8,7 +8,7 @@ Implement the new data structure to support multiple lists and handle the initia
 - [x] Task: Implement "Reset" logic for initial migration (as per spec). b81d5bb
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Core Data Structure & Migration' (Protocol in workflow.md) 1a92b12
 
-## Phase 2: List Management Logic (CRUD)
+## Phase 2: List Management Logic (CRUD) [checkpoint: 8139352]
 Implement the core business logic for managing the collection of lists.
 
 - [x] Task: Implement `createList` functionality with default naming. 24bbe0c
@@ -16,7 +16,7 @@ Implement the core business logic for managing the collection of lists.
 - [x] Task: Implement `renameList` functionality. c2ccf8d
 - [x] Task: Implement `reorderLists` functionality. 3ab2f5b
 - [x] Task: Write tests for all list management operations. 3ab2f5b
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: List Management Logic (CRUD)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: List Management Logic (CRUD)' (Protocol in workflow.md) 8139352
 
 ## Phase 3: UI Implementation - List Switching
 Build the user interface for viewing and switching between lists.
