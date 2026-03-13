@@ -73,4 +73,18 @@ describe('useStorage', () => {
     expect(state.value.lists[0].name).toBe('Routine')
     expect(localStorageMock.getItem('loop-list-tasks')).toBeNull()
   })
+
+  describe('List Management', () => {
+    it('creates a new list with default name and makes it active', () => {
+      const { state, createList, activeList } = useStorage()
+      const initialCount = state.value.lists.length
+      
+      const newList = createList()
+      
+      expect(state.value.lists.length).toBe(initialCount + 1)
+      expect(newList.name).toBe('新しいリスト')
+      expect(state.value.activeListId).toBe(newList.id)
+      expect(activeList.value.id).toBe(newList.id)
+    })
+  })
 })

@@ -57,8 +57,20 @@ export function useStorage() {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.value))
   })
 
+  const createList = (name = '新しいリスト') => {
+    const newList: RoutineList = {
+      id: Date.now().toString(),
+      name,
+      tasks: []
+    }
+    state.value.lists.push(newList)
+    state.value.activeListId = newList.id
+    return newList
+  }
+
   return {
     state,
-    activeList
+    activeList,
+    createList
   }
 }
