@@ -5,7 +5,7 @@ Implement the new data structure to support multiple lists and handle the initia
 
 - [x] Task: Update type definitions for multiple lists. ea71831
 - [x] Task: Create a new storage utility/composable for managing multiple lists. b81d5bb
-- [ ] Task: Implement "Reset" logic for initial migration (as per spec).
+- [x] Task: Implement "Reset" logic for initial migration (as per spec). b81d5bb
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Data Structure & Migration' (Protocol in workflow.md)
 
 ## Phase 2: List Management Logic (CRUD)
