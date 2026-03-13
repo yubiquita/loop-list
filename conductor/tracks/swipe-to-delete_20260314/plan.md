@@ -14,12 +14,12 @@
 - [x] Task: スワイプ操作によるインデント操作の既存テストを確認する。 0fe97b8
 
 ### Phase 2: Refactor Swipe Logic
-- [~] Task: `TaskItem.vue` の `handleTouchMove` を修正し、Level 0 アイテムでの左スワイプを許可する。
-- [ ] Task: `TaskItem.vue` の `handleTouchEnd` を修正し、Level 0 アイテムでの深い左スワイプ時に `delete` イベントを emit するようにする。
-- [ ] Task: 視覚的フィードバック（背景）を、Level 0 での左スワイプ時に「削除」を示す内容に動的に変更する。
+- [x] Task: `TaskItem.vue` の `handleTouchMove` を修正し、Level 0 アイテムでの左スワイプを許可する。 b675b9e
+- [x] Task: `TaskItem.vue` の `handleTouchEnd` を修正し、Level 0 アイテムでの深い左スワイプ時に `delete` イベントを emit するようにする。 b675b9e
+- [x] Task: 視覚的フィードバック（背景）を、Level 0 での左スワイプ時に「削除」を示す内容に動的に変更する。 b675b9e
 
 ### Phase 3: UI Cleanup
-- [ ] Task: `TaskItem.vue` のテンプレートから `delete-button` を削除する。
+- [~] Task: `TaskItem.vue` のテンプレートから `delete-button` を削除する。
 - [ ] Task: `TaskItem.vue` のスタイルから不要になった `.delete-button` 関連のCSSを削除する。
 
 ### Phase 4: Verification
