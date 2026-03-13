@@ -1,8 +1,0 @@
-{
-  "track_id": "redesign_from_mock_20260313",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-03-13T10:00:00Z",
-  "updated_at": "2026-03-13T10:00:00Z",
-  "description": "現在の実装をすべて破棄し、@ref/loop-list-mock.jsx を参照して設計を更新してください"
-}
