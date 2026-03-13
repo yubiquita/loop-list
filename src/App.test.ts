@@ -135,6 +135,19 @@ describe('App', () => {
     })
   })
 
+  describe('Delete Task', () => {
+    it('deletes a task when delete button is clicked', async () => {
+      const wrapper = mount(App)
+      const initialTaskCount = wrapper.findAll('.task-item').length
+      
+      const deleteButton = wrapper.find('.delete-button')
+      await deleteButton.trigger('click')
+      
+      const newTaskCount = wrapper.findAll('.task-item').length
+      expect(newTaskCount).toBe(initialTaskCount - 1)
+    })
+  })
+
   describe('Persistence', () => {
     it('saves tasks to localStorage when a task is toggled', async () => {
       const setItemSpy = vi.spyOn(localStorageMock, 'setItem')
