@@ -12,10 +12,10 @@
 ## Implementation Plan
 
 ### Phase 1: データ構造の拡張とコンポーネント化
-- [ ] Task: タスクデータ構造に `indent` プロパティを追加 (0 or 1)
-- [ ] Task: `App.vue` から `TaskItem.vue` コンポーネントを切り出し、Props を定義
-- [ ] Task: 基本的なパディング表示の実装
-- [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [x] Task: タスクデータ構造に `indent` プロパティを追加 (0 or 1)
+- [x] Task: `App.vue` から `TaskItem.vue` コンポーネントを切り出し、Props を定義
+- [x] Task: 基本的なパディング表示の実装
+- [~] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ### Phase 2: スワイプ操作によるインデント機能の実装
 - [ ] Task: スワイプジェスチャーを検知するロジックの実装
