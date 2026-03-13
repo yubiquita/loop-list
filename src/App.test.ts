@@ -136,12 +136,20 @@ describe('App', () => {
   })
 
   describe('Delete Task', () => {
-    it('deletes a task when delete button is clicked', async () => {
+    it('deletes a task when swiped left deeply', async () => {
       const wrapper = mount(App)
       const initialTaskCount = wrapper.findAll('.task-item').length
       
-      const deleteButton = wrapper.find('.delete-button')
-      await deleteButton.trigger('click')
+      const taskItem = wrapper.find('.task-item')
+      
+      // Simulate deep swipe left
+      await taskItem.trigger('touchstart', {
+        touches: [{ clientX: 200, clientY: 0 }]
+      })
+      await taskItem.trigger('touchmove', {
+        touches: [{ clientX: 50, clientY: 0 }] // diffX = -150
+      })
+      await taskItem.trigger('touchend')
       
       const newTaskCount = wrapper.findAll('.task-item').length
       expect(newTaskCount).toBe(initialTaskCount - 1)

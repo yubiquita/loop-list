@@ -140,10 +140,6 @@ const onDragStart = (e: PointerEvent) => {
       
       <span class="task-text">{{ task.text }}</span>
 
-      <button @click="emit('delete', task.id)" class="delete-button" aria-label="削除">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-      </button>
-
       <div 
         class="drag-handle" 
         aria-hidden="true"
@@ -274,22 +270,6 @@ const onDragStart = (e: PointerEvent) => {
 .is-subtask .task-text {
   font-size: 0.95rem;
   font-weight: 600;
-}
-
-.delete-button {
-  padding: 8px;
-  color: #cbd5e1;
-  transition: all 0.2s;
-  opacity: 0;
-  flex-shrink: 0;
-}
-
-.task-item:hover .delete-button {
-  opacity: 1;
-}
-
-.delete-button:hover {
-  color: #ef4444;
 }
 
 .drag-handle {
