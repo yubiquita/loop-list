@@ -123,5 +123,23 @@ describe('useStorage', () => {
       
       expect(state.value.lists[0].name).toBe('New Routine Name')
     })
+
+    it('reorders lists', () => {
+      const { state, createList, reorderLists } = useStorage()
+      const list1 = state.value.lists[0]
+      const list2 = createList('List 2')
+      const list3 = createList('List 3')
+      
+      // Initial order: [list1, list2, list3]
+      expect(state.value.lists.map(l => l.id)).toEqual([list1.id, list2.id, list3.id])
+      
+      // Move list3 to the middle: [list1, list3, list2]
+      reorderLists(2, 1)
+      expect(state.value.lists.map(l => l.id)).toEqual([list1.id, list3.id, list2.id])
+      
+      // Move list1 to the end: [list3, list2, list1]
+      reorderLists(0, 2)
+      expect(state.value.lists.map(l => l.id)).toEqual([list3.id, list2.id, list1.id])
+    })
   })
 })

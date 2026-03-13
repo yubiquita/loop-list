@@ -90,11 +90,19 @@ export function useStorage() {
     }
   }
 
+  const reorderLists = (fromIndex: number, toIndex: number) => {
+    const lists = [...state.value.lists]
+    const [moved] = lists.splice(fromIndex, 1)
+    lists.splice(toIndex, 0, moved)
+    state.value.lists = lists
+  }
+
   return {
     state,
     activeList,
     createList,
     deleteList,
-    renameList
+    renameList,
+    reorderLists
   }
 }
