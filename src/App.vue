@@ -13,13 +13,32 @@ const initialTasks: Task[] = [
   { id: 't2', text: 'コップ一杯の水を飲む', completed: false, indent: 1 },
   { id: 't3', text: 'ストレッチ（5分）', completed: false, indent: 1 },
   { id: 't4', text: '仕事の準備', completed: false, indent: 0 },
-  { id: 't5', text: 'PCを起動する', completed: false, indent: 1 },
   { id: 't6', text: '今日のスケジュール確認', completed: false, indent: 1 },
 ]
 
-const tasks = ref<Task[]>(initialTasks)
+const STORAGE_KEY = 'loop-list-tasks'
+
+const loadTasks = (): Task[] => {
+  const saved = window.localStorage.getItem(STORAGE_KEY)
+  if (saved) {
+    try {
+      return JSON.parse(saved)
+    } catch (e) {
+      console.error('Failed to parse saved tasks', e)
+    }
+  }
+  return initialTasks
+}
+
+const tasks = ref<Task[]>(loadTasks())
 const isAdding = ref(false)
 const newTaskText = ref('')
+
+import { watchEffect } from 'vue'
+
+watchEffect(() => {
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks.value))
+})
 
 const uncheckAll = () => {
   tasks.value = tasks.value.map(t => ({ ...t, completed: false }))

@@ -1,9 +1,29 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import App from './App.vue'
 
+// LocalStorage mock
+const localStorageMock = (() => {
+  let store: Record<string, string> = {}
+  return {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => { store[key] = value },
+    clear: () => { store = {} },
+    removeItem: (key: string) => { delete store[key] }
+  }
+})()
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock
+})
+
 describe('App', () => {
+  beforeEach(() => {
+    localStorageMock.clear()
+  })
+
   it('renders the title', () => {
+
     const wrapper = mount(App)
     expect(wrapper.find('.title').text()).toBe('Routine')
   })
@@ -106,6 +126,34 @@ describe('App', () => {
       const taskItems = wrapper.findAll('.task-item')
       expect(taskItems[taskItems.length - 1].text()).toContain('New Task')
       expect(wrapper.find('.add-task-form').exists()).toBe(false) // closed after add
+    })
+  })
+
+  describe('Persistence', () => {
+    it('saves tasks to localStorage when a task is toggled', async () => {
+      const setItemSpy = vi.spyOn(localStorageMock, 'setItem')
+      const wrapper = mount(App)
+      
+      await wrapper.find('.checkbox').trigger('click')
+      
+      expect(setItemSpy).toHaveBeenCalledWith('loop-list-tasks', expect.any(String))
+      setItemSpy.mockRestore()
+    })
+
+    it('loads tasks from localStorage on initialization', async () => {
+      const mockTasks = [
+        { id: 'm1', text: 'Mock Task', completed: true, indent: 0 }
+      ]
+      vi.spyOn(localStorageMock, 'getItem').mockReturnValue(JSON.stringify(mockTasks))
+      
+      const wrapper = mount(App)
+      const taskItems = wrapper.findAll('.task-item')
+      
+      expect(taskItems.length).toBe(1)
+      expect(taskItems[0].text()).toContain('Mock Task')
+      expect(taskItems[0].classes()).toContain('is-completed')
+      
+      vi.restoreAllMocks()
     })
   })
 })
