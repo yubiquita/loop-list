@@ -40,9 +40,14 @@ const handleTouchMove = (e: TouchEvent) => {
     return
   }
 
-  // 親タスク(0)は右スワイプ(インデント)、子タスク(1)は左スワイプ(インデント解除)のみ許可
-  if (props.task.indent === 0 && diffX > 0) {
-    swipeOffset.value = Math.min(diffX, 100)
+  // 親タスク(0)は右スワイプ(インデント)と深い左スワイプ(削除)を許可、子タスク(1)は左スワイプ(インデント解除)のみ許可
+  if (props.task.indent === 0) {
+    if (diffX > 0) {
+      swipeOffset.value = Math.min(diffX, 100)
+    } else {
+      // 削除のために左スワイプも許可
+      swipeOffset.value = Math.max(diffX, -150)
+    }
     // 水平スワイプ中は垂直スクロールを防止
     if (e.cancelable) e.preventDefault()
   } else if (props.task.indent === 1 && diffX < 0) {
@@ -62,6 +67,8 @@ const handleTouchEnd = () => {
     emit('indent', props.task.id, 1)
   } else if (swipeOffset.value < -60 && props.task.indent === 1) {
     emit('indent', props.task.id, 0)
+  } else if (swipeOffset.value < -100 && props.task.indent === 0) {
+    emit('delete', props.task.id)
   }
   
   swipeOffset.value = 0
@@ -91,13 +98,22 @@ const onDragStart = (e: PointerEvent) => {
       <span class="swipe-text">サブ</span>
     </div>
 
-    <!-- スワイプ時の背景フィードバック (左スワイプ: インデント解除) -->
+    <!-- スワイプ時の背景フィードバック (左スワイプ: インデント解除 または 削除) -->
     <div 
       class="swipe-background outdent-bg"
-      :class="{ 'is-visible': swipeOffset < 0 }"
+      :class="{ 
+        'is-visible': swipeOffset < 0,
+        'delete-bg': task.indent === 0 && swipeOffset < -60 
+      }"
     >
-      <span class="swipe-text">メイン</span>
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"></polyline><line x1="3" y1="12" x2="9" y2="12"></line><line x1="21" y1="6" x2="21" y2="18"></line></svg>
+      <template v-if="task.indent === 1">
+        <span class="swipe-text">メイン</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"></polyline><line x1="3" y1="12" x2="9" y2="12"></line><line x1="21" y1="6" x2="21" y2="18"></line></svg>
+      </template>
+      <template v-else>
+        <span class="swipe-text">{{ swipeOffset < -100 ? '離して削除' : '削除' }}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+      </template>
     </div>
 
     <div 
@@ -176,6 +192,12 @@ const onDragStart = (e: PointerEvent) => {
   color: #ea580c;
   justify-content: flex-end;
   border: 1px solid #ffedd5;
+}
+
+.outdent-bg.delete-bg {
+  background-color: #fef2f2;
+  color: #ef4444;
+  border-color: #fee2e2;
 }
 
 .swipe-text {
