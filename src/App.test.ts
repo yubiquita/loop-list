@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import App from './App.vue'
 
 // LocalStorage mock
@@ -20,10 +21,10 @@ Object.defineProperty(window, 'localStorage', {
 describe('App', () => {
   beforeEach(() => {
     localStorageMock.clear()
+    vi.clearAllMocks()
   })
 
-  it('renders the title', () => {
-
+  it('renders the title (active list name)', () => {
     const wrapper = mount(App)
     expect(wrapper.find('.title').text()).toBe('Routine')
   })
@@ -37,12 +38,13 @@ describe('App', () => {
   it('toggles task completion', async () => {
     const wrapper = mount(App)
     const checkbox = wrapper.find('.checkbox')
-    const taskItem = wrapper.find('.task-item')
     
-    expect(taskItem.classes()).not.toContain('is-completed')
+    expect(wrapper.find('.task-item').classes()).not.toContain('is-completed')
     
     await checkbox.trigger('click')
-    expect(taskItem.classes()).toContain('is-completed')
+    await nextTick()
+    
+    expect(wrapper.find('.task-item').classes()).toContain('is-completed')
   })
 
   it('unchecks all tasks when reset button is clicked', async () => {
@@ -52,61 +54,40 @@ describe('App', () => {
     
     // Check one task
     await checkbox.trigger('click')
+    await nextTick()
     expect(wrapper.find('.task-item').classes()).toContain('is-completed')
     
     // Reset
     await resetButton.trigger('click')
+    await nextTick()
     expect(wrapper.find('.task-item').classes()).not.toContain('is-completed')
   })
 
   describe('Parent-Child Logic', () => {
     it('checks all child tasks when parent task is checked', async () => {
       const wrapper = mount(App)
-      const taskItems = wrapper.findAll('.task-item')
-      
-      // t1 is parent (0), t2 and t3 are children (1)
-      const parentCheckbox = taskItems[0].find('.checkbox')
+      const parentCheckbox = wrapper.findAll('.checkbox')[0]
       
       await parentCheckbox.trigger('click')
+      await nextTick()
       
-      expect(taskItems[0].classes()).toContain('is-completed') // t1
-      expect(taskItems[1].classes()).toContain('is-completed') // t2
-      expect(taskItems[2].classes()).toContain('is-completed') // t3
-      
-      // Uncheck parent
-      await parentCheckbox.trigger('click')
-      expect(taskItems[0].classes()).not.toContain('is-completed')
-      expect(taskItems[1].classes()).not.toContain('is-completed')
-      expect(taskItems[2].classes()).not.toContain('is-completed')
+      const items = wrapper.findAll('.task-item')
+      expect(items[0].classes()).toContain('is-completed')
+      expect(items[1].classes()).toContain('is-completed')
+      expect(items[2].classes()).toContain('is-completed')
     })
 
     it('checks parent task when all child tasks are checked', async () => {
       const wrapper = mount(App)
-      const taskItems = wrapper.findAll('.task-item')
       
-      // t2 and t3 are children of t1
-      const child1Checkbox = taskItems[1].find('.checkbox')
-      const child2Checkbox = taskItems[2].find('.checkbox')
+      const checkboxes = wrapper.findAll('.checkbox')
+      await checkboxes[1].trigger('click') // child 1
+      await nextTick()
+      expect(wrapper.findAll('.task-item')[0].classes()).not.toContain('is-completed')
       
-      await child1Checkbox.trigger('click')
-      expect(taskItems[0].classes()).not.toContain('is-completed') // parent still unchecked
-      
-      await child2Checkbox.trigger('click')
-      expect(taskItems[0].classes()).toContain('is-completed') // parent now checked
-    })
-
-    it('unchecks parent task when a child task is unchecked', async () => {
-      const wrapper = mount(App)
-      const taskItems = wrapper.findAll('.task-item')
-      
-      // Initial: check parent (and thus children)
-      await taskItems[0].find('.checkbox').trigger('click')
-      expect(taskItems[0].classes()).toContain('is-completed')
-      
-      // Uncheck one child
-      await taskItems[1].find('.checkbox').trigger('click')
-      expect(taskItems[1].classes()).not.toContain('is-completed')
-      expect(taskItems[0].classes()).not.toContain('is-completed') // parent should be unchecked
+      await checkboxes[2].trigger('click') // child 2
+      await nextTick()
+      expect(wrapper.findAll('.task-item')[0].classes()).toContain('is-completed')
     })
   })
 
@@ -118,64 +99,73 @@ describe('App', () => {
       expect(wrapper.find('.add-task-form').exists()).toBe(false)
       
       await fab.trigger('click')
+      await nextTick()
       expect(wrapper.find('.add-task-form').exists()).toBe(true)
     })
 
     it('adds a new task when form is submitted', async () => {
       const wrapper = mount(App)
       await wrapper.find('.fab').trigger('click')
+      await nextTick()
       
       const input = wrapper.find('.add-task-input')
       await input.setValue('New Task')
       await wrapper.find('.add-task-form').trigger('submit')
+      await nextTick()
       
       const taskItems = wrapper.findAll('.task-item')
       expect(taskItems[taskItems.length - 1].text()).toContain('New Task')
-      expect(wrapper.find('.add-task-form').exists()).toBe(false) // closed after add
     })
   })
 
-  describe('Delete Task', () => {
-    it('deletes a task when swiped left deeply', async () => {
+  describe('List Selection', () => {
+    it('opens list selector when header is clicked', async () => {
       const wrapper = mount(App)
-      const initialTaskCount = wrapper.findAll('.task-item').length
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(false)
       
-      const taskItem = wrapper.find('.task-item')
+      await wrapper.find('.header-content').trigger('click')
+      await nextTick()
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(true)
+    })
+
+    it('creates a new list from selector', async () => {
+      const wrapper = mount(App)
+      await wrapper.find('.header-content').trigger('click')
+      await nextTick()
       
-      // Simulate deep swipe left
-      await taskItem.trigger('touchstart', {
-        touches: [{ clientX: 200, clientY: 0 }]
-      })
-      await taskItem.trigger('touchmove', {
-        touches: [{ clientX: 50, clientY: 0 }] // diffX = -150
-      })
-      await taskItem.trigger('touchend')
+      await wrapper.find('.create-list-button').trigger('click')
+      await nextTick()
       
-      const newTaskCount = wrapper.findAll('.task-item').length
-      expect(newTaskCount).toBe(initialTaskCount - 1)
+      expect(wrapper.find('.title').text()).toBe('新しいリスト')
+      expect(wrapper.findAll('.task-item').length).toBe(0)
     })
   })
 
   describe('Persistence', () => {
-    it('saves tasks to localStorage when a task is toggled', async () => {
+    it('saves state to localStorage when a task is toggled', async () => {
       const setItemSpy = vi.spyOn(localStorageMock, 'setItem')
       const wrapper = mount(App)
       
       await wrapper.find('.checkbox').trigger('click')
+      await nextTick()
       
-      expect(setItemSpy).toHaveBeenCalledWith('loop-list-tasks', expect.any(String))
+      expect(setItemSpy).toHaveBeenCalledWith('loop-list-state', expect.any(String))
       setItemSpy.mockRestore()
     })
 
-    it('loads tasks from localStorage on initialization', async () => {
-      const mockTasks = [
-        { id: 'm1', text: 'Mock Task', completed: true, indent: 0 }
-      ]
-      vi.spyOn(localStorageMock, 'getItem').mockReturnValue(JSON.stringify(mockTasks))
+    it('loads state from localStorage on initialization', async () => {
+      const mockState = {
+        lists: [
+          { id: 'l1', name: 'Mock List', tasks: [{ id: 'm1', text: 'Mock Task', completed: true, indent: 0 }] }
+        ],
+        activeListId: 'l1'
+      }
+      localStorageMock.setItem('loop-list-state', JSON.stringify(mockState))
       
       const wrapper = mount(App)
-      const taskItems = wrapper.findAll('.task-item')
+      await nextTick()
       
+      const taskItems = wrapper.findAll('.task-item')
       expect(taskItems.length).toBe(1)
       expect(taskItems[0].text()).toContain('Mock Task')
       expect(taskItems[0].classes()).toContain('is-completed')

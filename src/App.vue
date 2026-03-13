@@ -2,32 +2,19 @@
 import { ref, computed, watchEffect, onUnmounted } from 'vue'
 import type { Task } from './types'
 import TaskItem from './components/TaskItem.vue'
+import { useStorage } from './composables/useStorage'
 
-const initialTasks: Task[] = [
-  { id: 't1', text: 'モーニングルーティン', completed: false, indent: 0 },
-  { id: 't2', text: 'コップ一杯の水を飲む', completed: false, indent: 1 },
-  { id: 't3', text: 'ストレッチ（5分）', completed: false, indent: 1 },
-  { id: 't4', text: '仕事の準備', completed: false, indent: 0 },
-  { id: 't5', text: 'PCを起動する', completed: false, indent: 1 },
-  { id: 't6', text: '今日のスケジュール確認', completed: false, indent: 1 },
-]
+const { state, activeList, createList } = useStorage()
 
-const STORAGE_KEY = 'loop-list-tasks'
-
-const loadTasks = (): Task[] => {
-  const saved = window.localStorage.getItem(STORAGE_KEY)
-  if (saved) {
-    try {
-      return JSON.parse(saved)
-    } catch (e) {
-      console.error('Failed to parse saved tasks', e)
-    }
+const tasks = computed({
+  get: () => activeList.value.tasks,
+  set: (newTasks) => {
+    activeList.value.tasks = newTasks
   }
-  return initialTasks
-}
+})
 
-const tasks = ref<Task[]>(loadTasks())
 const isAdding = ref(false)
+const isListSelectorOpen = ref(false)
 const newTaskText = ref('')
 const draggingId = ref<string | null>(null)
 const dropTargetIndex = ref<number | null>(null)
@@ -41,10 +28,6 @@ const progress = computed(() => {
 const progressText = computed(() => {
   const completed = tasks.value.filter(t => t.completed).length
   return `${completed}/${tasks.value.length}`
-})
-
-watchEffect(() => {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks.value))
 })
 
 const uncheckAll = () => {
@@ -62,7 +45,7 @@ const addTask = () => {
     completed: false,
     indent: 0
   }
-  tasks.value.push(newTask)
+  tasks.value = [...tasks.value, newTask]
   newTaskText.value = ''
   isAdding.value = false
 }
@@ -76,42 +59,56 @@ const handleIndent = (id: string, newIndent: number) => {
   if (index === -1) return
   if (index === 0 && newIndent === 1) return
   
-  tasks.value[index].indent = newIndent
+  const newTasks = [...tasks.value]
+  newTasks[index] = { ...newTasks[index], indent: newIndent }
+  tasks.value = newTasks
 }
 
 const toggleTask = (id: string) => {
   const index = tasks.value.findIndex(t => t.id === id)
   if (index === -1) return
 
-  const task = tasks.value[index]
+  const newTasks = JSON.parse(JSON.stringify(tasks.value))
+  const task = newTasks[index]
   const newCompleted = !task.completed
   task.completed = newCompleted
 
   if (task.indent === 0) {
-    for (let i = index + 1; i < tasks.value.length; i++) {
-      if (tasks.value[i].indent === 0) break
-      tasks.value[i].completed = newCompleted
+    for (let i = index + 1; i < newTasks.length; i++) {
+      if (newTasks[i].indent === 0) break
+      newTasks[i].completed = newCompleted
     }
   } else {
     let parentIndex = -1
     for (let i = index - 1; i >= 0; i--) {
-      if (tasks.value[i].indent === 0) {
+      if (newTasks[i].indent === 0) {
         parentIndex = i
         break
       }
     }
     if (parentIndex !== -1) {
       let allChildrenCompleted = true
-      for (let i = parentIndex + 1; i < tasks.value.length; i++) {
-        if (tasks.value[i].indent === 0) break
-        if (!tasks.value[i].completed) {
+      for (let i = parentIndex + 1; i < newTasks.length; i++) {
+        if (newTasks[i].indent === 0) break
+        if (!newTasks[i].completed) {
           allChildrenCompleted = false
           break
         }
       }
-      tasks.value[parentIndex].completed = allChildrenCompleted
+      newTasks[parentIndex].completed = allChildrenCompleted
     }
   }
+  tasks.value = newTasks
+}
+
+const selectList = (id: string) => {
+  state.value.activeListId = id
+  isListSelectorOpen.value = false
+}
+
+const handleCreateList = () => {
+  createList()
+  isListSelectorOpen.value = false
 }
 
 // ---------------------------------------------------------
@@ -176,17 +173,13 @@ const handlePointerMove = (e: PointerEvent) => {
     const mid = rect.top + rect.height / 2
     let targetIdx = e.clientY < mid ? hoverIdx : hoverIdx + 1
     
-    // ルール1: 自己グループ内へのドロップ禁止
     if (targetIdx >= group.start && targetIdx <= group.end + 1) {
       dropTargetIndex.value = null
       return
     }
 
-    // ルール2: 親タスクをドラッグ中の場合、他の親の子の間への割り込みを禁止
     if (isParentDragging) {
-      // 挿入位置にあるアイテムが子タスク(indent:1)であれば、そのグループの境界まで移動させる
       if (targetIdx < tasks.value.length && tasks.value[targetIdx].indent === 1) {
-        // 下に移動している場合はそのグループの末尾、上に移動している場合はそのグループの先頭へ
         const hoverGroup = getGroupRange(tasks.value, targetIdx)
         targetIdx = fromIdx < hoverIdx ? hoverGroup.end + 1 : hoverGroup.start
       }
@@ -194,7 +187,6 @@ const handlePointerMove = (e: PointerEvent) => {
 
     dropTargetIndex.value = targetIdx
   } else {
-    // リストの外側の場合は、最も近い端に寄せる
     const listRect = document.querySelector('.task-list')?.getBoundingClientRect()
     if (listRect) {
       if (e.clientY < listRect.top) dropTargetIndex.value = 0
@@ -233,8 +225,11 @@ onUnmounted(() => {
 
 <template>
   <header class="header">
-    <div class="header-content">
-      <h1 class="title">Routine</h1>
+    <div class="header-content" @click="isListSelectorOpen = !isListSelectorOpen">
+      <div class="title-container">
+        <h1 class="title">{{ activeList.name }}</h1>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon" :class="{ 'is-open': isListSelectorOpen }"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
       <div class="progress-container">
         <div class="progress-bar-bg">
           <div class="progress-bar-fill" :style="{ width: `${progress}%` }"></div>
@@ -245,12 +240,39 @@ onUnmounted(() => {
     <button @click="uncheckAll" class="reset-button" aria-label="全てのチェックを解除して最初からやり直す">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
     </button>
+
+    <Transition name="fade">
+      <div v-if="isListSelectorOpen" class="list-selector-overlay" @click.stop="isListSelectorOpen = false">
+        <div class="list-selector-menu" @click.stop>
+          <div class="list-selector-header">
+            <h3>リストを切り替え</h3>
+          </div>
+          <div class="list-items">
+            <button 
+              v-for="list in state.lists" 
+              :key="list.id"
+              class="list-item"
+              :class="{ 'is-active': list.id === state.activeListId }"
+              @click="selectList(list.id)"
+            >
+              <span class="list-item-name">{{ list.name }}</span>
+              <svg v-if="list.id === state.activeListId" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+          </div>
+          <div class="list-selector-footer">
+            <button class="create-list-button" @click="handleCreateList">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              新しいリストを作成
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </header>
 
   <main class="task-list">
     <TransitionGroup name="list">
       <template v-for="(task, index) in tasks" :key="task.id">
-        <!-- 挿入インジケーター（アイテムの前） -->
         <div 
           v-if="dropTargetIndex === index" 
           class="drop-indicator"
@@ -266,7 +288,6 @@ onUnmounted(() => {
         />
       </template>
 
-      <!-- 挿入インジケーター（リストの最後） -->
       <div 
         v-if="dropTargetIndex === tasks.length" 
         class="drop-indicator"
@@ -325,6 +346,13 @@ onUnmounted(() => {
 
 .header-content {
   flex: 1;
+  cursor: pointer;
+}
+
+.title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .title {
@@ -333,6 +361,19 @@ onUnmounted(() => {
   color: #0f172a;
   margin: 0;
   letter-spacing: -0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.chevron-icon {
+  color: #64748b;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chevron-icon.is-open {
+  transform: rotate(180deg);
 }
 
 .progress-container {
@@ -372,11 +413,122 @@ onUnmounted(() => {
   border-radius: 16px;
   transition: all 0.2s;
   margin-left: 16px;
+  flex-shrink: 0;
 }
 
 .reset-button:active {
   transform: rotate(-30deg) scale(0.9);
   background-color: #e2e8f0;
+}
+
+.list-selector-overlay {
+  position: absolute;
+  top: 100%;
+  left: 24px;
+  right: 24px;
+  z-index: 100;
+  padding-top: 12px;
+}
+
+.list-selector-menu {
+  background-color: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  animation: dropdown-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdown-fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.list-selector-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.list-selector-header h3 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.list-items {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.list-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 12px;
+  color: #475569;
+  font-weight: 600;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.list-item:active {
+  background-color: #f1f5f9;
+}
+
+.list-item.is-active {
+  background-color: #f5f3ff;
+  color: #4f46e5;
+}
+
+.list-item-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.check-icon {
+  margin-left: 12px;
+  color: #4f46e5;
+}
+
+.list-selector-footer {
+  padding: 8px;
+  border-top: 1px solid #f1f5f9;
+  background-color: #f8fafc;
+}
+
+.create-list-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 12px;
+  color: #4f46e5;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.create-list-button:active {
+  background-color: #f1f5f9;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 .task-list {
@@ -433,7 +585,7 @@ onUnmounted(() => {
 .add-task-container {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 150;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
