@@ -83,10 +83,18 @@ export function useStorage() {
     }
   }
 
+  const renameList = (id: string, name: string) => {
+    const list = state.value.lists.find(l => l.id === id)
+    if (list) {
+      list.name = name
+    }
+  }
+
   return {
     state,
     activeList,
     createList,
-    deleteList
+    deleteList,
+    renameList
   }
 }

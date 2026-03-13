@@ -114,5 +114,14 @@ describe('useStorage', () => {
       expect(state.value.lists[0].name).toBe('Routine')
       expect(state.value.activeListId).toBe(state.value.lists[0].id)
     })
+
+    it('renames a list', () => {
+      const { state, renameList } = useStorage()
+      const listId = state.value.lists[0].id
+      
+      renameList(listId, 'New Routine Name')
+      
+      expect(state.value.lists[0].name).toBe('New Routine Name')
+    })
   })
 })
