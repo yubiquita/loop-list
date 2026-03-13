@@ -191,6 +191,52 @@ describe('App', () => {
     })
   })
 
+  describe('End-to-End Multi-list Flow', () => {
+    it('maintains separate tasks for different lists', async () => {
+      const wrapper = mount(App)
+      
+      // List 1 (Routine): Add a task
+      await wrapper.find('.fab').trigger('click')
+      await nextTick()
+      await wrapper.find('.add-task-input').setValue('Task in List 1')
+      await wrapper.find('.add-task-form').trigger('submit')
+      await nextTick()
+      
+      expect(wrapper.findAll('.task-item').some(i => i.text().includes('Task in List 1'))).toBe(true)
+      const initialCount = wrapper.findAll('.task-item').length
+      
+      // Create List 2
+      await wrapper.find('.header-content').trigger('click')
+      await nextTick()
+      await wrapper.find('.create-list-button').trigger('click')
+      await nextTick()
+      
+      expect(wrapper.find('.title').text()).toBe('新しいリスト')
+      expect(wrapper.findAll('.task-item').length).toBe(0)
+      
+      // List 2: Add a task
+      await wrapper.find('.fab').trigger('click')
+      await nextTick()
+      await wrapper.find('.add-task-input').setValue('Task in List 2')
+      await wrapper.find('.add-task-form').trigger('submit')
+      await nextTick()
+      
+      expect(wrapper.findAll('.task-item').length).toBe(1)
+      expect(wrapper.find('.task-item').text()).toContain('Task in List 2')
+      
+      // Switch back to List 1
+      await wrapper.find('.header-content').trigger('click')
+      await nextTick()
+      const listItems = wrapper.findAll('.list-item')
+      await listItems[0].trigger('click') // Routine list
+      await nextTick()
+      
+      expect(wrapper.find('.title').text()).toBe('Routine')
+      expect(wrapper.findAll('.task-item').length).toBe(initialCount)
+      expect(wrapper.findAll('.task-item').some(i => i.text().includes('Task in List 1'))).toBe(true)
+    })
+  })
+
   describe('Persistence', () => {
     it('saves state to localStorage when a task is toggled', async () => {
       const setItemSpy = vi.spyOn(localStorageMock, 'setItem')
