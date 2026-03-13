@@ -23,6 +23,10 @@ const newTaskText = ref('')
 const draggingId = ref<string | null>(null)
 const dropTargetIndex = ref<number | null>(null)
 
+// リスト並び替え用
+const draggingListId = ref<string | null>(null)
+const listDropTargetIndex = ref<number | null>(null)
+
 const progress = computed(() => {
   if (tasks.value.length === 0) return 0
   const completed = tasks.value.filter(t => t.completed).length
@@ -140,7 +144,7 @@ const handleDeleteList = (id: string) => {
 }
 
 // ---------------------------------------------------------
-// ドラッグ＆ドロップの実装（タスク用）
+// ドラッグ＆ドロップ（タスク用）
 // ---------------------------------------------------------
 
 const getGroupRange = (tasksArray: Task[], idx: number) => {
@@ -244,10 +248,71 @@ const performSort = (dragId: string, targetIdx: number) => {
   tasks.value = remainingTasks.map((t, i) => (i === 0 && t.indent === 1) ? { ...t, indent: 0 } : t)
 }
 
+// ---------------------------------------------------------
+// ドラッグ＆ドロップ（リスト用）
+// ---------------------------------------------------------
+
+const handleListDragStart = (id: string) => {
+  if (!isManagingLists.value) return
+  draggingListId.value = id
+  window.addEventListener('pointermove', handleListPointerMove, { passive: false })
+  window.addEventListener('pointerup', handleListPointerUp)
+  window.addEventListener('pointercancel', handleListPointerUp)
+}
+
+const handleListPointerUp = () => {
+  if (draggingListId.value !== null && listDropTargetIndex.value !== null) {
+    const fromIdx = state.value.lists.findIndex(l => l.id === draggingListId.value)
+    if (fromIdx !== -1) {
+      let toIdx = listDropTargetIndex.value
+      if (toIdx > fromIdx) toIdx--
+      reorderLists(fromIdx, toIdx)
+    }
+  }
+  
+  draggingListId.value = null
+  listDropTargetIndex.value = null
+  window.removeEventListener('pointermove', handleListPointerMove)
+  window.removeEventListener('pointerup', handleListPointerUp)
+  window.removeEventListener('pointercancel', handleListPointerUp)
+}
+
+const handleListPointerMove = (e: PointerEvent) => {
+  if (!draggingListId.value) return
+  e.preventDefault()
+  
+  const elements = document.elementsFromPoint(e.clientX, e.clientY)
+  const row = elements.find(el => el.hasAttribute('data-list-id'))
+  
+  if (row) {
+    const hoverId = row.getAttribute('data-list-id')
+    const hoverIdx = state.value.lists.findIndex(l => l.id === hoverId)
+    if (hoverIdx === -1) return
+
+    const rect = row.getBoundingClientRect()
+    const mid = rect.top + rect.height / 2
+    let targetIdx = e.clientY < mid ? hoverIdx : hoverIdx + 1
+    
+    // 自己位置への挿入は無視
+    const fromIdx = state.value.lists.findIndex(l => l.id === draggingListId.value)
+    if (targetIdx === fromIdx || targetIdx === fromIdx + 1) {
+      listDropTargetIndex.value = null
+      return
+    }
+
+    listDropTargetIndex.value = targetIdx
+  } else {
+    listDropTargetIndex.value = null
+  }
+}
+
 onUnmounted(() => {
   window.removeEventListener('pointermove', handlePointerMove)
   window.removeEventListener('pointerup', handlePointerUp)
   window.removeEventListener('pointercancel', handlePointerUp)
+  window.removeEventListener('pointermove', handleListPointerMove)
+  window.removeEventListener('pointerup', handleListPointerUp)
+  window.removeEventListener('pointercancel', handleListPointerUp)
 })
 </script>
 
@@ -280,43 +345,57 @@ onUnmounted(() => {
             </button>
           </div>
           <div class="list-items">
-            <div 
-              v-for="list in state.lists" 
-              :key="list.id"
-              class="list-item-wrapper"
-            >
-              <button 
-                v-if="editingListId !== list.id"
-                class="list-item"
-                :class="{ 
-                  'is-active': list.id === state.activeListId && !isManagingLists,
-                  'is-managing': isManagingLists 
-                }"
-                @click="selectList(list.id)"
+            <template v-for="(list, index) in state.lists" :key="list.id">
+              <!-- リスト挿入インジケーター -->
+              <div v-if="listDropTargetIndex === index" class="list-drop-indicator"></div>
+
+              <div 
+                class="list-item-wrapper"
+                :data-list-id="list.id"
               >
-                <span class="list-item-name">{{ list.name }}</span>
-                <div class="list-item-actions" v-if="isManagingLists">
-                  <button class="edit-list-button" @click.stop="startEditingList(list.id, list.name)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  </button>
-                  <button class="delete-list-button" @click.stop="handleDeleteList(list.id)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  </button>
+                <button 
+                  v-if="editingListId !== list.id"
+                  class="list-item"
+                  :class="{ 
+                    'is-active': list.id === state.activeListId && !isManagingLists,
+                    'is-managing': isManagingLists,
+                    'is-dragging': draggingListId === list.id
+                  }"
+                  @click="selectList(list.id)"
+                >
+                  <div 
+                    v-if="isManagingLists" 
+                    class="list-drag-handle"
+                    @pointerdown.stop="handleListDragStart(list.id)"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+                  </div>
+                  <span class="list-item-name">{{ list.name }}</span>
+                  <div class="list-item-actions" v-if="isManagingLists">
+                    <button class="edit-list-button" @click.stop="startEditingList(list.id, list.name)">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button class="delete-list-button" @click.stop="handleDeleteList(list.id)">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                  </div>
+                  <svg v-else-if="list.id === state.activeListId" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </button>
+                
+                <div v-else class="list-item-edit">
+                  <input 
+                    v-model="editingListName" 
+                    type="text" 
+                    class="edit-list-input" 
+                    autoFocus
+                    @keyup.enter="saveListName(list.id)"
+                    @blur="saveListName(list.id)"
+                  />
                 </div>
-                <svg v-else-if="list.id === state.activeListId" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              </button>
-              
-              <div v-else class="list-item-edit">
-                <input 
-                  v-model="editingListName" 
-                  type="text" 
-                  class="edit-list-input" 
-                  autoFocus
-                  @keyup.enter="saveListName(list.id)"
-                  @blur="saveListName(list.id)"
-                />
               </div>
-            </div>
+            </template>
+            <!-- 最後のリポジトリ挿入インジケーター -->
+            <div v-if="listDropTargetIndex === state.lists.length" class="list-drop-indicator"></div>
           </div>
           <div class="list-selector-footer">
             <button class="create-list-button" @click="handleCreateList">
@@ -565,6 +644,21 @@ onUnmounted(() => {
   cursor: default;
 }
 
+.list-item.is-dragging {
+  opacity: 0.5;
+}
+
+.list-drag-handle {
+  color: #cbd5e1;
+  padding-right: 12px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.list-drag-handle:active {
+  cursor: grabbing;
+}
+
 .list-item-name {
   flex: 1;
   white-space: nowrap;
@@ -606,6 +700,13 @@ onUnmounted(() => {
   font-weight: 600;
   color: #1e293b;
   outline: none;
+}
+
+.list-drop-indicator {
+  height: 3px;
+  background-color: #4f46e5;
+  margin: 4px 8px;
+  border-radius: 9999px;
 }
 
 .check-icon {
