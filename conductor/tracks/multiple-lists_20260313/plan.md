@@ -11,7 +11,7 @@ Implement the new data structure to support multiple lists and handle the initia
 ## Phase 2: List Management Logic (CRUD)
 Implement the core business logic for managing the collection of lists.
 
-- [ ] Task: Implement `createList` functionality with default naming.
+- [x] Task: Implement `createList` functionality with default naming. 24bbe0c
 - [ ] Task: Implement `deleteList` functionality with active list fallback logic.
 - [ ] Task: Implement `renameList` functionality.
 - [ ] Task: Implement `reorderLists` functionality.
