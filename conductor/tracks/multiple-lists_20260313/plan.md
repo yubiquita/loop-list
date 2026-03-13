@@ -15,7 +15,7 @@ Implement the core business logic for managing the collection of lists.
 - [x] Task: Implement `deleteList` functionality with active list fallback logic. a894ca8
 - [x] Task: Implement `renameList` functionality. c2ccf8d
 - [x] Task: Implement `reorderLists` functionality. 3ab2f5b
-- [ ] Task: Write tests for all list management operations.
+- [x] Task: Write tests for all list management operations. 3ab2f5b
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: List Management Logic (CRUD)' (Protocol in workflow.md)
 
 ## Phase 3: UI Implementation - List Switching
