@@ -3,7 +3,7 @@
 ## Phase 1: Core Data Structure & Migration
 Implement the new data structure to support multiple lists and handle the initial transition.
 
-- [ ] Task: Update type definitions for multiple lists.
+- [x] Task: Update type definitions for multiple lists. ea71831
 - [ ] Task: Create a new storage utility/composable for managing multiple lists.
 - [ ] Task: Implement "Reset" logic for initial migration (as per spec).
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Data Structure & Migration' (Protocol in workflow.md)
