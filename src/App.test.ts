@@ -72,6 +72,12 @@ describe('App', () => {
       expect(taskItems[0].classes()).toContain('is-completed') // t1
       expect(taskItems[1].classes()).toContain('is-completed') // t2
       expect(taskItems[2].classes()).toContain('is-completed') // t3
+      
+      // Uncheck parent
+      await parentCheckbox.trigger('click')
+      expect(taskItems[0].classes()).not.toContain('is-completed')
+      expect(taskItems[1].classes()).not.toContain('is-completed')
+      expect(taskItems[2].classes()).not.toContain('is-completed')
     })
 
     it('checks parent task when all child tasks are checked', async () => {

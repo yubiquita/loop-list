@@ -17,17 +17,17 @@
 - [x] Task: 基本的なパディング表示の実装
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) 7471272
 
-### Phase 2: スワイプ操作によるインデント機能の実装
+### Phase 2: スワイプ操作によるインデント機能の実装 [checkpoint: 1540b94]
 - [x] Task: スワイプジェスチャーを検知するロジックの実装
 - [x] Task: スワイプ時の視覚的フィードバック（背景、アイコン）の実装
 - [x] Task: インデント変更のステート更新ロジックの実装
 - [x] Task: 先頭アイテムのインデントを禁止するバリデーションの実装
-- [~] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) 1540b94
 
 ### Phase 3: チェック連動ロジック (Cascade Check) の実装
-- [ ] Task: 親タスクのチェック時に子タスクを連動させるロジックの TDD 実装
-- [ ] Task: 子タスクのチェック状態から親タスクの状態を更新するロジックの TDD 実装
-- [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+- [x] Task: 親タスクのチェック時に子タスクを連動させるロジックの TDD 実装
+- [x] Task: 子タスクのチェック状態から親タスクの状態を更新するロジックの TDD 実装
+- [~] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
 
 ### Phase 4: データ永続化と最終調整
 - [ ] Task: インデント状態が LocalStorage に正しく保存されることを確認
