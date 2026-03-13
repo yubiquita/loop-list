@@ -20,6 +20,11 @@ describe('useStorage', () => {
   beforeEach(() => {
     localStorageMock.clear()
     vi.clearAllMocks()
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('initializes with a default list if storage is empty', () => {
@@ -79,6 +84,7 @@ describe('useStorage', () => {
       const { state, createList, activeList } = useStorage()
       const initialCount = state.value.lists.length
       
+      vi.advanceTimersByTime(10)
       const newList = createList()
       
       expect(state.value.lists.length).toBe(initialCount + 1)
@@ -90,6 +96,8 @@ describe('useStorage', () => {
     it('deletes a list and switches active list if necessary', () => {
       const { state, createList, deleteList } = useStorage()
       const list1 = state.value.lists[0]
+      
+      vi.advanceTimersByTime(10)
       const list2 = createList('List 2')
       
       expect(state.value.lists.length).toBe(2)
@@ -107,6 +115,7 @@ describe('useStorage', () => {
       const { state, deleteList } = useStorage()
       const lastListId = state.value.lists[0].id
       
+      vi.advanceTimersByTime(10)
       deleteList(lastListId)
       
       expect(state.value.lists.length).toBe(1)
