@@ -20,10 +20,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Core Logic' (Protocol in workflow.md) 0b876fe
 
 ## Phase 3: Deployment & Refinement
-- [ ] Task: GitHub Actions によるデプロイパイプライン構築
-    - [ ] `.github/workflows/deploy.yml` の作成
-    - [ ] GitHub Pages へのデプロイ確認
-- [ ] Task: UI の磨き上げと最終検証
-    - [ ] モバイル対応、アクセシビリティチェック
-    - [ ] PWA 設定の検討（任意）
+- [x] Task: GitHub Actions によるデプロイパイプライン構築 90a33c1
+    - [x] `.github/workflows/deploy.yml` の作成
+    - [x] GitHub Pages へのデプロイ確認
+- [x] Task: UI の磨き上げと最終検証 79cb1b2
+    - [x] モバイル対応、アクセシビリティチェック
+    - [x] PWA 設定の検討（任意）
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Deployment' (Protocol in workflow.md)
