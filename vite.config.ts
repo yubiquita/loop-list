@@ -1,12 +1,11 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
-  base: './', // 相対パス指定に変更（最も汎用性が高い）
   plugins: [vue()],
-  build: {
-    outDir: 'dist',
-    assetsDir: 'assets'
-  }
+  test: {
+    environment: 'jsdom',
+    globals: true,
+  },
 })
