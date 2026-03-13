@@ -10,14 +10,14 @@
     - [x] Vanilla CSS による基本スタイリング
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup' (Protocol in workflow.md) 0e41739
 
-## Phase 2: Core Business Logic (TDD)
+## Phase 2: Core Business Logic (TDD) [checkpoint: 0b876fe]
 - [x] Task: チェックリスト管理ロジック Dominating Logic の TDD 実装 db9b32c
     - [x] タスクの追加、チェック、削除、リストクリアの Vitest テスト作成
     - [x] Vue 3 Composition API によるロジック実装
 - [x] Task: LocalStorage 永続化機能の実装 468a21a
     - [x] 状態保存と読み込みのテスト作成
     - [x] 永続化ロジック（`watchEffect` などを使用）の実装
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Core Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Core Logic' (Protocol in workflow.md) 0b876fe
 
 ## Phase 3: Deployment & Refinement
 - [ ] Task: GitHub Actions によるデプロイパイプライン構築
