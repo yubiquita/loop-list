@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Vue 3 と Vite によるコア・チェックリスト機能の構築**
+- [x] **Track: Vue 3 と Vite によるコア・チェックリスト機能の構築**
   *Link: [./tracks/core_checklist_20260313/](./tracks/core_checklist_20260313/)*
