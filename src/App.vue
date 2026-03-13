@@ -1,241 +1,209 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+
+interface Task {
+  id: string
+  text: string
+  completed: boolean
+  indent: number
+}
+
+const initialTasks: Task[] = [
+  { id: 't1', text: 'モーニングルーティン', completed: false, indent: 0 },
+  { id: 't2', text: 'コップ一杯の水を飲む', completed: false, indent: 1 },
+  { id: 't3', text: 'ストレッチ（5分）', completed: false, indent: 1 },
+  { id: 't4', text: '仕事の準備', completed: false, indent: 0 },
+  { id: 't5', text: 'PCを起動する', completed: false, indent: 1 },
+  { id: 't6', text: '今日のスケジュール確認', completed: false, indent: 1 },
+]
+
+const tasks = ref<Task[]>(initialTasks)
+
+const uncheckAll = () => {
+  tasks.value = tasks.value.map(t => ({ ...t, completed: false }))
+}
+
+const toggleTask = (id: string) => {
+  const task = tasks.value.find(t => t.id === id)
+  if (task) {
+    task.completed = !task.completed
+  }
+}
+</script>
+
 <template>
-  <div id="app" class="app">
-    <!-- ヘッダー -->
-    <header class="header">
-      <h1>{{ CONFIG.APP_NAME }}</h1>
+  <header class="header">
+    <div class="header-content">
+      <h1 class="title">Routine</h1>
+      <p class="subtitle">スワイプで階層化・長押しで並び替え</p>
+    </div>
+    <button @click="uncheckAll" class="reset-button" aria-label="リセット">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+    </button>
+  </header>
+
+  <main class="task-list">
+    <div 
+      v-for="task in tasks" 
+      :key="task.id" 
+      class="task-item"
+      :class="{ 'is-completed': task.completed, 'is-subtask': task.indent === 1 }"
+    >
       <button 
-        v-if="uiStore.isListScreen" 
-        class="add-list-btn" 
-        @click="createNewList"
-        :disabled="uiStore.isLoading"
+        @click="toggleTask(task.id)"
+        class="checkbox"
+        :class="{ 'is-checked': task.completed }"
       >
-        +
+        <svg v-if="task.completed" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
       </button>
-    </header>
+      
+      <span class="task-text">{{ task.text }}</span>
 
-    <!-- メインコンテンツ -->
-    <main class="main">
-      <!-- リスト一覧画面 -->
-      <ListScreen
-        v-show="uiStore.isListScreen"
-        @edit-list="editList"
-        @view-list="viewList"
-      />
+      <div class="drag-handle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      </div>
+    </div>
+  </main>
 
-      <!-- リスト詳細画面 -->
-      <DetailScreen
-        v-show="uiStore.isDetailScreen"
-        @edit-list="editCurrentList"
-        @back="backToList"
-      />
-
-      <!-- リスト編集画面 -->
-      <EditScreen
-        v-show="uiStore.isEditScreen"
-        @save="saveList"
-        @cancel="cancelEdit"
-      />
-    </main>
-
-    <!-- 確認モーダル -->
-    <ConfirmModal
-      v-if="uiStore.showConfirmModal"
-      :message="uiStore.confirmMessage"
-      @confirm="uiStore.confirmYes"
-      @cancel="uiStore.confirmNo"
-    />
-
-    <!-- ローディング -->
-    <LoadingSpinner v-if="uiStore.isLoading" :message="uiStore.loadingMessage" />
-
-    <!-- エラーメッセージ -->
-    <ErrorMessage v-if="uiStore.error" :message="uiStore.error" @close="uiStore.clearError" />
-
-    <!-- 成功メッセージ -->
-    <SuccessMessage v-if="uiStore.successMessage" :message="uiStore.successMessage" @close="uiStore.clearSuccess" />
+  <div class="fab-container">
+    <button class="fab" aria-label="タスク追加">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
   </div>
 </template>
 
-<script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
-import { useChecklistStore, useUIStore } from './stores'
-import { CONFIG } from './constants'
-
-// コンポーネント
-import ListScreen from './components/ListScreen.vue'
-import DetailScreen from './components/DetailScreen.vue'
-import EditScreen from './components/EditScreen.vue'
-import ConfirmModal from './components/ConfirmModal.vue'
-import LoadingSpinner from './components/LoadingSpinner.vue'
-import ErrorMessage from './components/ErrorMessage.vue'
-import SuccessMessage from './components/SuccessMessage.vue'
-
-// ストア
-const checklistStore = useChecklistStore()
-const uiStore = useUIStore()
-
-// 新しいリストを作成
-const createNewList = () => {
-  const name = prompt('リスト名を入力してください:')
-  if (name && name.trim()) {
-    const newList = checklistStore.createList(name.trim())
-    checklistStore.setCurrentList(newList.id)
-    uiStore.showEditScreen()
-  }
-}
-
-// リスト編集
-const editList = (listId: string) => {
-  checklistStore.setCurrentList(listId)
-  uiStore.showEditScreen()
-}
-
-// リスト表示
-const viewList = (listId: string) => {
-  checklistStore.setCurrentList(listId)
-  uiStore.showDetailScreen()
-}
-
-// 現在のリストを編集
-const editCurrentList = () => {
-  uiStore.showEditScreen()
-}
-
-// リスト一覧に戻る
-const backToList = () => {
-  checklistStore.setCurrentList(null)
-  uiStore.showListScreen()
-}
-
-// リスト保存
-const saveList = () => {
-  // 現在のリストの空項目を削除
-  if (checklistStore.currentList) {
-    const filteredItems = checklistStore.currentList.items.filter(item => item.text.trim() !== '')
-    checklistStore.updateList(checklistStore.currentList.id, {
-      items: filteredItems
-    })
-  }
-  uiStore.showDetailScreen()
-}
-
-// 編集キャンセル
-const cancelEdit = () => {
-  if (checklistStore.currentList) {
-    uiStore.showDetailScreen()
-  } else {
-    uiStore.showListScreen()
-  }
-}
-
-// キーボードイベント処理
-const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape') {
-    uiStore.handleEscapeKey()
-  }
-}
-
-// リサイズイベント処理
-const handleResize = () => {
-  uiStore.updateMobileState()
-}
-
-// 初期化
-onMounted(async () => {
-  await checklistStore.initializeData()
-  
-  // イベントリスナー追加
-  document.addEventListener('keydown', handleKeydown)
-  window.addEventListener('resize', handleResize)
-  
-  // 初期画面の設定
-  uiStore.showListScreen()
-})
-
-// クリーンアップ
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
-  window.removeEventListener('resize', handleResize)
-})
-</script>
-
-<style>
-/* グローバルスタイルは既存のCSSファイルから移植 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html, body {
-  overflow-x: hidden;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
-}
-
-.app {
-  max-width: 480px;
-  margin: 0 auto;
-  min-height: 100vh;
-  min-height: 100svh;
-  background: white;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-}
-
+<style scoped>
 .header {
+  padding: 20px 24px;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: #689F38;
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.header h1 {
-  font-size: 18px;
+.title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 4px 0 0;
+  font-weight: 500;
+}
+
+.reset-button {
+  padding: 10px;
+  background-color: #f1f5f9;
+  color: #475569;
+  border-radius: 9999px;
+  transition: all 0.2s;
+}
+
+.reset-button:active {
+  transform: scale(0.95);
+  background-color: #e2e8f0;
+}
+
+.task-list {
+  padding: 20px;
+  flex: 1;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: white;
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.task-item.is-subtask {
+  margin-left: 40px;
+}
+
+.checkbox {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.checkbox.is-checked {
+  background-color: #10b981;
+  border-color: #10b981;
+  transform: scale(1.1);
+}
+
+.task-text {
+  flex: 1;
   font-weight: 600;
+  color: #1e293b;
+  transition: all 0.3s;
 }
 
-.add-list-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+.task-item.is-completed .task-text {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.task-item.is-subtask .task-text {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.drag-handle {
+  color: #cbd5e1;
+  padding: 4px;
+}
+
+.fab-container {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 32px;
+  pointer-events: none;
+}
+
+.fab {
+  width: 56px;
+  height: 56px;
+  background-color: #4f46e5;
   color: white;
-  font-size: 20px;
-  cursor: pointer;
-  transition: background 0.2s;
+  border-radius: 9999px;
+  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition: all 0.2s;
 }
 
-.add-list-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.add-list-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.main {
-  position: relative;
-  min-height: calc(100vh - 68px);
-  min-height: calc(100svh - 68px);
-  overflow: hidden;
-}
-
-@media (max-width: 480px) {
-  .app {
-    max-width: 100%;
-  }
-  
-  .header {
-    padding: 12px 16px;
-  }
+.fab:active {
+  transform: scale(0.95);
+  background-color: #4338ca;
 }
 </style>
