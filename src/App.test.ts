@@ -139,6 +139,56 @@ describe('App', () => {
       expect(wrapper.find('.title').text()).toBe('新しいリスト')
       expect(wrapper.findAll('.task-item').length).toBe(0)
     })
+
+    it('renames a list through the management UI', async () => {
+      const wrapper = mount(App)
+      await wrapper.find('.header-content').trigger('click')
+      await nextTick()
+      
+      // Toggle management mode
+      await wrapper.find('.manage-toggle-button').trigger('click')
+      await nextTick()
+      
+      // Click edit button
+      await wrapper.find('.edit-list-button').trigger('click')
+      await nextTick()
+      
+      const input = wrapper.find('.edit-list-input')
+      await input.setValue('Renamed List')
+      await input.trigger('blur')
+      await nextTick()
+      
+      expect(wrapper.find('.title').text()).toBe('Renamed List')
+    })
+
+    it('deletes a list through the management UI', async () => {
+      // Mock confirm
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+      
+      const wrapper = mount(App)
+      // Create a second list so we can delete one without it being the last one (for simpler test)
+      await wrapper.find('.header-content').trigger('click')
+      await nextTick()
+      await wrapper.find('.create-list-button').trigger('click')
+      await nextTick()
+      
+      expect(wrapper.find('.title').text()).toBe('新しいリスト')
+      
+      await wrapper.find('.header-content').trigger('click')
+      await nextTick()
+      await wrapper.find('.manage-toggle-button').trigger('click')
+      await nextTick()
+      
+      // Delete the active list (which is the new one)
+      const deleteButtons = wrapper.findAll('.delete-list-button')
+      await deleteButtons[1].trigger('click')
+      await nextTick()
+      
+      expect(confirmSpy).toHaveBeenCalled()
+      expect(wrapper.find('.title').text()).toBe('Routine') // Switched back to first list
+      
+      confirmSpy.mockRestore()
+    })
   })
 
   describe('Persistence', () => {
