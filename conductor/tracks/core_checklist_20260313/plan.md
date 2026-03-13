@@ -1,14 +1,14 @@
 # Implementation Plan: core_checklist_20260313
 
-## Phase 1: Environment Setup & Core UI
-- [ ] Task: Vite (Vue 3, TypeScript) プロジェクトの初期化
-    - [ ] `npm create vite@latest` による初期化
-    - [ ] `vitest` の導入と設定
-    - [ ] `ref/loop-list-mock.jsx` の内容を読み込み、コアロジックを抽出する
-- [ ] Task: 最小限の UI コンポーネント構築 (Accessible Brave UI)
-    - [ ] `App.vue` とベースコンポーネントの作成
-    - [ ] Vanilla CSS による基本スタイリング
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup' (Protocol in workflow.md)
+## Phase 1: Environment Setup & Core UI [checkpoint: 0e41739]
+- [x] Task: Vite (Vue 3, TypeScript) プロジェクトの初期化 b904720
+    - [x] `npm create vite@latest` による初期化
+    - [x] `vitest` の導入と設定
+    - [x] `ref/loop-list-mock.jsx` の内容を読み込み、コアロジックを抽出する
+- [x] Task: 最小限の UI コンポーネント構築 (Accessible Brave UI) a987f35
+    - [x] `App.vue` とベースコンポーネントの作成
+    - [x] Vanilla CSS による基本スタイリング
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup' (Protocol in workflow.md) 0e41739
 
 ## Phase 2: Core Business Logic (TDD)
 - [ ] Task: チェックリスト管理ロジックの TDD 実装
