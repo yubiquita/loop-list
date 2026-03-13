@@ -18,15 +18,63 @@ const initialTasks: Task[] = [
 ]
 
 const tasks = ref<Task[]>(initialTasks)
+const isAdding = ref(false)
+const newTaskText = ref('')
 
 const uncheckAll = () => {
   tasks.value = tasks.value.map(t => ({ ...t, completed: false }))
 }
 
+const addTask = () => {
+  if (!newTaskText.value.trim()) {
+    isAdding.value = false
+    return
+  }
+  const newTask: Task = {
+    id: Date.now().toString(),
+    text: newTaskText.value,
+    completed: false,
+    indent: 0
+  }
+  tasks.value.push(newTask)
+  newTaskText.value = ''
+  isAdding.value = false
+}
+
 const toggleTask = (id: string) => {
-  const task = tasks.value.find(t => t.id === id)
-  if (task) {
-    task.completed = !task.completed
+  const index = tasks.value.findIndex(t => t.id === id)
+  if (index === -1) return
+
+  const task = tasks.value[index]
+  const newCompleted = !task.completed
+  task.completed = newCompleted
+
+  if (task.indent === 0) {
+    // 親タスクを切り替えた場合：続く子タスクをすべて連動させる
+    for (let i = index + 1; i < tasks.value.length; i++) {
+      if (tasks.value[i].indent === 0) break // 次の親が来たら終了
+      tasks.value[i].completed = newCompleted
+    }
+  } else {
+    // 子タスクを切り替えた場合：親タスクの状態を更新する
+    let parentIndex = -1
+    for (let i = index - 1; i >= 0; i--) {
+      if (tasks.value[i].indent === 0) {
+        parentIndex = i
+        break
+      }
+    }
+    if (parentIndex !== -1) {
+      let allChildrenCompleted = true
+      for (let i = parentIndex + 1; i < tasks.value.length; i++) {
+        if (tasks.value[i].indent === 0) break
+        if (!tasks.value[i].completed) {
+          allChildrenCompleted = false
+          break
+        }
+      }
+      tasks.value[parentIndex].completed = allChildrenCompleted
+    }
   }
 }
 </script>
@@ -65,8 +113,33 @@ const toggleTask = (id: string) => {
     </div>
   </main>
 
-  <div class="fab-container">
-    <button class="fab" aria-label="タスク追加">
+  <!-- タスク追加UI -->
+  <div v-if="isAdding" class="add-task-container animate-in slide-in-from-bottom-5">
+    <form @submit.prevent="addTask" class="add-task-form">
+      <input
+        v-model="newTaskText"
+        type="text"
+        autoFocus
+        placeholder="新しいルーティンを追加..."
+        class="add-task-input"
+      />
+      <div class="add-task-actions">
+        <button type="button" @click="isAdding = false" class="cancel-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <button 
+          type="submit"
+          :disabled="!newTaskText.trim()"
+          class="submit-button"
+        >
+          追加
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div v-if="!isAdding" class="fab-container">
+    <button @click="isAdding = true" class="fab" aria-label="タスク追加">
       <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
     </button>
   </div>
@@ -173,6 +246,70 @@ const toggleTask = (id: string) => {
 .drag-handle {
   color: #cbd5e1;
   padding: 4px;
+}
+
+.add-task-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+  z-index: 30;
+}
+
+.add-task-form {
+  display: flex;
+  gap: 12px;
+}
+
+.add-task-input {
+  flex: 1;
+  background-color: #f1f5f9;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  color: #1e293b;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.add-task-input:focus {
+  background-color: white;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.add-task-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cancel-button {
+  padding: 12px;
+  color: #94a3b8;
+  background-color: #f8fafc;
+  border-radius: 12px;
+}
+
+.submit-button {
+  padding: 0 20px;
+  background-color: #4f46e5;
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.submit-button:disabled {
+  opacity: 0.5;
+}
+
+.submit-button:not(:disabled):active {
+  transform: scale(0.95);
 }
 
 .fab-container {
