@@ -1,12 +1,12 @@
 # Implementation Plan: Multiple Routine Lists
 
-## Phase 1: Core Data Structure & Migration
+## Phase 1: Core Data Structure & Migration [checkpoint: 1a92b12]
 Implement the new data structure to support multiple lists and handle the initial transition.
 
 - [x] Task: Update type definitions for multiple lists. ea71831
 - [x] Task: Create a new storage utility/composable for managing multiple lists. b81d5bb
 - [x] Task: Implement "Reset" logic for initial migration (as per spec). b81d5bb
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Data Structure & Migration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Core Data Structure & Migration' (Protocol in workflow.md) 1a92b12
 
 ## Phase 2: List Management Logic (CRUD)
 Implement the core business logic for managing the collection of lists.
