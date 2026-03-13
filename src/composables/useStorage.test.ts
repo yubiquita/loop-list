@@ -86,5 +86,33 @@ describe('useStorage', () => {
       expect(state.value.activeListId).toBe(newList.id)
       expect(activeList.value.id).toBe(newList.id)
     })
+
+    it('deletes a list and switches active list if necessary', () => {
+      const { state, createList, deleteList } = useStorage()
+      const list1 = state.value.lists[0]
+      const list2 = createList('List 2')
+      
+      expect(state.value.lists.length).toBe(2)
+      expect(state.value.activeListId).toBe(list2.id)
+      
+      // Delete active list
+      deleteList(list2.id)
+      
+      expect(state.value.lists.length).toBe(1)
+      expect(state.value.lists[0].id).toBe(list1.id)
+      expect(state.value.activeListId).toBe(list1.id)
+    })
+
+    it('creates a new default list if the last list is deleted', () => {
+      const { state, deleteList } = useStorage()
+      const lastListId = state.value.lists[0].id
+      
+      deleteList(lastListId)
+      
+      expect(state.value.lists.length).toBe(1)
+      expect(state.value.lists[0].id).not.toBe(lastListId)
+      expect(state.value.lists[0].name).toBe('Routine')
+      expect(state.value.activeListId).toBe(state.value.lists[0].id)
+    })
   })
 })

@@ -68,9 +68,25 @@ export function useStorage() {
     return newList
   }
 
+  const deleteList = (id: string) => {
+    const index = state.value.lists.findIndex(l => l.id === id)
+    if (index === -1) return
+
+    state.value.lists.splice(index, 1)
+
+    if (state.value.lists.length === 0) {
+      const defaultList = createDefaultList()
+      state.value.lists.push(defaultList)
+      state.value.activeListId = defaultList.id
+    } else if (state.value.activeListId === id) {
+      state.value.activeListId = state.value.lists[0].id
+    }
+  }
+
   return {
     state,
     activeList,
-    createList
+    createList,
+    deleteList
   }
 }
