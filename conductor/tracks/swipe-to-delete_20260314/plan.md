@@ -19,11 +19,11 @@
 - [x] Task: 視覚的フィードバック（背景）を、Level 0 での左スワイプ時に「削除」を示す内容に動的に変更する。 b675b9e
 
 ### Phase 3: UI Cleanup
-- [~] Task: `TaskItem.vue` のテンプレートから `delete-button` を削除する。
-- [ ] Task: `TaskItem.vue` のスタイルから不要になった `.delete-button` 関連のCSSを削除する。
+- [x] Task: `TaskItem.vue` のテンプレートから `delete-button` を削除する。 06c0b25
+- [x] Task: `TaskItem.vue` のスタイルから不要になった `.delete-button` 関連のCSSを削除する。 06c0b25
 
 ### Phase 4: Verification
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Verification' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 4: Verification' (Protocol in workflow.md)
 
 ## Verification & Testing
 - **Automated Tests:** `vitest` を使用して、スワイプ操作が正しくイベントを発生させるか検証する。
