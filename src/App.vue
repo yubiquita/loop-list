@@ -69,6 +69,16 @@ const deleteTask = (id: string) => {
   tasks.value = tasks.value.filter(t => t.id !== id)
 }
 
+const handleIndent = (id: string, newIndent: number) => {
+  const index = tasks.value.findIndex(t => t.id === id)
+  if (index === -1) return
+  
+  // 最初の項目はサブタスクにできない（バリデーションは別タスクだが、ロジックとして含めておく）
+  if (index === 0 && newIndent === 1) return
+  
+  tasks.value[index].indent = newIndent
+}
+
 const toggleTask = (id: string) => {
   const index = tasks.value.findIndex(t => t.id === id)
   if (index === -1) return
@@ -130,6 +140,7 @@ const toggleTask = (id: string) => {
       :task="task"
       @toggle="toggleTask"
       @delete="deleteTask"
+      @indent="handleIndent"
     />
     
     <div v-if="tasks.length === 0" class="empty-state">
