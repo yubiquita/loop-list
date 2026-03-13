@@ -4,12 +4,14 @@ import type { Task } from '../types'
 
 const props = defineProps<{
   task: Task
+  isDragging?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'toggle', id: string): void
   (e: 'delete', id: string): void
   (e: 'indent', id: string, newIndent: number): void
+  (e: 'dragstart', id: string): void
 }>()
 
 const swipeOffset = ref(0)
@@ -31,16 +33,22 @@ const handleTouchMove = (e: TouchEvent) => {
   const diffX = currentX - startX.value
   const diffY = currentY - startY.value
 
+  // 縦方向の動きが大きい場合はスクロールとみなす
   if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) {
     isSwiping.value = false
     swipeOffset.value = 0
     return
   }
 
+  // 親タスク(0)は右スワイプ(インデント)、子タスク(1)は左スワイプ(インデント解除)のみ許可
   if (props.task.indent === 0 && diffX > 0) {
     swipeOffset.value = Math.min(diffX, 100)
+    // 水平スワイプ中は垂直スクロールを防止
+    if (e.cancelable) e.preventDefault()
   } else if (props.task.indent === 1 && diffX < 0) {
     swipeOffset.value = Math.max(diffX, -100)
+    // 水平スワイプ中は垂直スクロールを防止
+    if (e.cancelable) e.preventDefault()
   } else {
     swipeOffset.value = 0
   }
@@ -58,17 +66,29 @@ const handleTouchEnd = () => {
   
   swipeOffset.value = 0
 }
+
+const onDragStart = (e: PointerEvent) => {
+  // テキスト選択を防ぎ、ドラッグ開始を通知
+  const target = e.target as HTMLElement
+  if (target.closest('.drag-handle')) {
+    emit('dragstart', props.task.id)
+  }
+}
 </script>
 
 <template>
-  <div class="task-item-wrapper" :style="{ marginLeft: task.indent === 1 ? '2.5rem' : '0' }">
+  <div 
+    class="task-item-wrapper" 
+    :style="{ marginLeft: task.indent === 1 ? '2.5rem' : '0' }"
+    :data-task-id="task.id"
+  >
     <!-- スワイプ時の背景フィードバック (右スワイプ: インデント) -->
     <div 
       class="swipe-background indent-bg"
       :class="{ 'is-visible': swipeOffset > 0 }"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline><line x1="21" y1="12" x2="15" y2="12"></line><line x1="3" y1="6" x2="3" y2="18"></line></svg>
-      <span class="swipe-text">サブタスク</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline><line x1="21" y1="12" x2="15" y2="12"></line><line x1="3" y1="6" x2="3" y2="18"></line></svg>
+      <span class="swipe-text">サブ</span>
     </div>
 
     <!-- スワイプ時の背景フィードバック (左スワイプ: インデント解除) -->
@@ -77,12 +97,16 @@ const handleTouchEnd = () => {
       :class="{ 'is-visible': swipeOffset < 0 }"
     >
       <span class="swipe-text">メイン</span>
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"></polyline><line x1="3" y1="12" x2="9" y2="12"></line><line x1="21" y1="6" x2="21" y2="18"></line></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"></polyline><line x1="3" y1="12" x2="9" y2="12"></line><line x1="21" y1="6" x2="21" y2="18"></line></svg>
     </div>
 
     <div 
       class="task-item"
-      :class="{ 'is-completed': task.completed, 'is-subtask': task.indent === 1 }"
+      :class="{ 
+        'is-completed': task.completed, 
+        'is-subtask': task.indent === 1,
+        'is-dragging': isDragging
+      }"
       :style="{ transform: `translateX(${swipeOffset}px)` }"
       @touchstart="handleTouchStart"
       @touchmove="handleTouchMove"
@@ -104,7 +128,11 @@ const handleTouchEnd = () => {
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
       </button>
 
-      <div class="drag-handle" aria-hidden="true">
+      <div 
+        class="drag-handle" 
+        aria-hidden="true"
+        @pointerdown="onDragStart"
+      >
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
       </div>
     </div>
@@ -116,6 +144,9 @@ const handleTouchEnd = () => {
   margin-bottom: 14px;
   position: relative;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* テキスト選択を完全に防止 */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .swipe-background {
@@ -148,9 +179,9 @@ const handleTouchEnd = () => {
 }
 
 .swipe-text {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  margin: 0 8px;
+  margin: 0 4px;
   letter-spacing: -0.02em;
 }
 
@@ -166,10 +197,19 @@ const handleTouchEnd = () => {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   position: relative;
   z-index: 10;
+  /* 水平方向の操作を優先しつつ、垂直スクロールを許可 */
   touch-action: pan-y;
 }
 
-.task-item:hover {
+.task-item.is-dragging {
+  opacity: 0.7;
+  scale: 0.98;
+  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
+  border-color: #4f46e5;
+  z-index: 20;
+}
+
+.task-item:hover:not(.is-dragging) {
   border-color: #cbd5e1;
 }
 
@@ -201,7 +241,6 @@ const handleTouchEnd = () => {
   color: #1e293b;
   font-size: 1.05rem;
   transition: all 0.3s;
-  user-select: none;
 }
 
 .is-completed .task-text {
@@ -235,5 +274,12 @@ const handleTouchEnd = () => {
   color: #cbd5e1;
   padding: 4px;
   flex-shrink: 0;
+  cursor: grab;
+  /* ドラッグハンドル上のデフォルト挙動を無効化 */
+  touch-action: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 </style>

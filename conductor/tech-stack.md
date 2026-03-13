@@ -19,6 +19,12 @@
 - **State Management:** **Vue 3 `reactive` / `ref`** (必要に応じて Pinia)
   - 選択理由: シンプルなアプリケーションにおいては、Vue 3 標準のリアクティビティで十分管理可能。
 
+## User Interaction
+- **Gesture Control:** **Touch API & Pointer API**
+  - 使用理由: モバイル・デスクトップ両方で、スワイプやドラッグ＆ドロップなどの直感的な操作を実現するため。
+- **Animations:** **Vue 3 `<TransitionGroup>`**
+  - 使用理由: タスクの追加、削除、およびドラッグによる並び替え時に、スムーズで心地よいユーザー体験を提供するため。
+
 ## Quality Assurance
 - **Test Runner:** **Vitest**
   - 選択理由: Vite と親和性が高く、高速な単体テスト・コンポーネントテストが可能。

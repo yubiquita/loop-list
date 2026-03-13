@@ -24,16 +24,16 @@
 - [x] Task: 先頭アイテムのインデントを禁止するバリデーションの実装
 - [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) 1540b94
 
-### Phase 3: チェック連動ロジック (Cascade Check) の実装
+### Phase 3: チェック連動ロジック (Cascade Check) の実装 [checkpoint: 225ffa9]
 - [x] Task: 親タスクのチェック時に子タスクを連動させるロジックの TDD 実装
 - [x] Task: 子タスクのチェック状態から親タスクの状態を更新するロジックの TDD 実装
-- [~] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md) 225ffa9
 
 ### Phase 4: データ永続化と最終調整
-- [ ] Task: インデント状態が LocalStorage に正しく保存されることを確認
-- [ ] Task: ドラッグ＆ドロップ（垂直移動）時の親子の整合性維持（モックのロジックを移植）
-- [ ] Task: モバイル実機でのスワイプ操作の最終調整
-- [ ] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
+- [x] Task: インデント状態が LocalStorage に正しく保存されることを確認
+- [x] Task: ドラッグ＆ドロップ（垂直移動）時の親子の整合性維持（モックのロジックを移植）
+- [x] Task: モバイル実機でのスワイプ操作の最終調整
+- [~] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
 
 ## Verification & Testing
 - Vitest による単体テスト: チェック連動ロジックとデータ整合性の検証

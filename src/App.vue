@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watchEffect, onUnmounted } from 'vue'
 import type { Task } from './types'
 import TaskItem from './components/TaskItem.vue'
 
@@ -29,6 +29,8 @@ const loadTasks = (): Task[] => {
 const tasks = ref<Task[]>(loadTasks())
 const isAdding = ref(false)
 const newTaskText = ref('')
+const draggingId = ref<string | null>(null)
+const dropTargetIndex = ref<number | null>(null)
 
 const progress = computed(() => {
   if (tasks.value.length === 0) return 0
@@ -72,8 +74,6 @@ const deleteTask = (id: string) => {
 const handleIndent = (id: string, newIndent: number) => {
   const index = tasks.value.findIndex(t => t.id === id)
   if (index === -1) return
-  
-  // 最初の項目はサブタスクにできない（バリデーションは別タスクだが、ロジックとして含めておく）
   if (index === 0 && newIndent === 1) return
   
   tasks.value[index].indent = newIndent
@@ -88,13 +88,11 @@ const toggleTask = (id: string) => {
   task.completed = newCompleted
 
   if (task.indent === 0) {
-    // 親タスクを切り替えた場合：続く子タスクをすべて連動させる
     for (let i = index + 1; i < tasks.value.length; i++) {
-      if (tasks.value[i].indent === 0) break // 次の親が来たら終了
+      if (tasks.value[i].indent === 0) break
       tasks.value[i].completed = newCompleted
     }
   } else {
-    // 子タスクを切り替えた場合：親タスクの状態を更新する
     let parentIndex = -1
     for (let i = index - 1; i >= 0; i--) {
       if (tasks.value[i].indent === 0) {
@@ -115,6 +113,122 @@ const toggleTask = (id: string) => {
     }
   }
 }
+
+// ---------------------------------------------------------
+// ドラッグ＆ドロップの実装（整合性ルール適用版）
+// ---------------------------------------------------------
+
+const getGroupRange = (tasksArray: Task[], idx: number) => {
+  let start = idx
+  while (start > 0 && tasksArray[start].indent === 1) {
+    start--
+  }
+  let end = start
+  for (let i = start + 1; i < tasksArray.length; i++) {
+    if (tasksArray[i].indent === 1) end = i
+    else break
+  }
+  return { start, end }
+}
+
+const handleDragStart = (id: string) => {
+  draggingId.value = id
+  document.body.style.overflow = 'hidden'
+  document.body.style.overscrollBehaviorY = 'contain'
+  window.addEventListener('pointermove', handlePointerMove, { passive: false })
+  window.addEventListener('pointerup', handlePointerUp)
+  window.addEventListener('pointercancel', handlePointerUp)
+}
+
+const handlePointerUp = () => {
+  if (draggingId.value !== null && dropTargetIndex.value !== null) {
+    performSort(draggingId.value, dropTargetIndex.value)
+  }
+  
+  draggingId.value = null
+  dropTargetIndex.value = null
+  document.body.style.overflow = ''
+  document.body.style.overscrollBehaviorY = ''
+  window.removeEventListener('pointermove', handlePointerMove)
+  window.removeEventListener('pointerup', handlePointerUp)
+  window.removeEventListener('pointercancel', handlePointerUp)
+}
+
+const handlePointerMove = (e: PointerEvent) => {
+  if (!draggingId.value) return
+  e.preventDefault()
+  
+  const fromIdx = tasks.value.findIndex(t => t.id === draggingId.value)
+  if (fromIdx === -1) return
+  
+  const isParentDragging = tasks.value[fromIdx].indent === 0
+  const group = isParentDragging ? getGroupRange(tasks.value, fromIdx) : { start: fromIdx, end: fromIdx }
+
+  const elements = document.elementsFromPoint(e.clientX, e.clientY)
+  const row = elements.find(el => el.hasAttribute('data-task-id'))
+  
+  if (row) {
+    const hoverId = row.getAttribute('data-task-id')
+    const hoverIdx = tasks.value.findIndex(t => t.id === hoverId)
+    if (hoverIdx === -1) return
+
+    const rect = row.getBoundingClientRect()
+    const mid = rect.top + rect.height / 2
+    let targetIdx = e.clientY < mid ? hoverIdx : hoverIdx + 1
+    
+    // ルール1: 自己グループ内へのドロップ禁止
+    if (targetIdx >= group.start && targetIdx <= group.end + 1) {
+      dropTargetIndex.value = null
+      return
+    }
+
+    // ルール2: 親タスクをドラッグ中の場合、他の親の子の間への割り込みを禁止
+    if (isParentDragging) {
+      // 挿入位置にあるアイテムが子タスク(indent:1)であれば、そのグループの境界まで移動させる
+      if (targetIdx < tasks.value.length && tasks.value[targetIdx].indent === 1) {
+        // 下に移動している場合はそのグループの末尾、上に移動している場合はそのグループの先頭へ
+        const hoverGroup = getGroupRange(tasks.value, targetIdx)
+        targetIdx = fromIdx < hoverIdx ? hoverGroup.end + 1 : hoverGroup.start
+      }
+    }
+
+    dropTargetIndex.value = targetIdx
+  } else {
+    // リストの外側の場合は、最も近い端に寄せる
+    const listRect = document.querySelector('.task-list')?.getBoundingClientRect()
+    if (listRect) {
+      if (e.clientY < listRect.top) dropTargetIndex.value = 0
+      else if (e.clientY > listRect.bottom) dropTargetIndex.value = tasks.value.length
+    }
+  }
+}
+
+const performSort = (dragId: string, targetIdx: number) => {
+  const fromIdx = tasks.value.findIndex(t => t.id === dragId)
+  if (fromIdx === -1) return
+
+  const isParentDragging = tasks.value[fromIdx].indent === 0
+  const group = isParentDragging ? getGroupRange(tasks.value, fromIdx) : { start: fromIdx, end: fromIdx }
+  const groupItems = tasks.value.slice(group.start, group.end + 1)
+
+  const remainingTasks = [...tasks.value]
+  remainingTasks.splice(group.start, groupItems.length)
+
+  let actualInsertIdx = targetIdx
+  if (targetIdx > group.start) {
+    actualInsertIdx = Math.max(0, targetIdx - groupItems.length)
+  }
+  actualInsertIdx = Math.min(actualInsertIdx, remainingTasks.length)
+
+  remainingTasks.splice(actualInsertIdx, 0, ...groupItems)
+  tasks.value = remainingTasks.map((t, i) => (i === 0 && t.indent === 1) ? { ...t, indent: 0 } : t)
+}
+
+onUnmounted(() => {
+  window.removeEventListener('pointermove', handlePointerMove)
+  window.removeEventListener('pointerup', handlePointerUp)
+  window.removeEventListener('pointercancel', handlePointerUp)
+})
 </script>
 
 <template>
@@ -134,14 +248,30 @@ const toggleTask = (id: string) => {
   </header>
 
   <main class="task-list">
-    <TaskItem 
-      v-for="task in tasks" 
-      :key="task.id" 
-      :task="task"
-      @toggle="toggleTask"
-      @delete="deleteTask"
-      @indent="handleIndent"
-    />
+    <TransitionGroup name="list">
+      <template v-for="(task, index) in tasks" :key="task.id">
+        <!-- 挿入インジケーター（アイテムの前） -->
+        <div 
+          v-if="dropTargetIndex === index" 
+          class="drop-indicator"
+        ></div>
+        
+        <TaskItem 
+          :task="task"
+          :is-dragging="draggingId === task.id"
+          @toggle="toggleTask"
+          @delete="deleteTask"
+          @indent="handleIndent"
+          @dragstart="handleDragStart"
+        />
+      </template>
+
+      <!-- 挿入インジケーター（リストの最後） -->
+      <div 
+        v-if="dropTargetIndex === tasks.length" 
+        class="drop-indicator"
+      ></div>
+    </TransitionGroup>
     
     <div v-if="tasks.length === 0" class="empty-state">
       <p>タスクがありません。右下の + ボタンから追加してください。</p>
@@ -253,6 +383,43 @@ const toggleTask = (id: string) => {
   padding: 20px;
   flex: 1;
   padding-bottom: 120px;
+}
+
+.list-move,
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.list-leave-active {
+  position: absolute;
+  width: calc(100% - 40px);
+}
+
+.drop-indicator {
+  height: 4px;
+  background-color: #4f46e5;
+  margin: 8px 0;
+  border-radius: 9999px;
+  position: relative;
+  box-shadow: 0 0 8px rgba(79, 70, 229, 0.4);
+}
+
+.drop-indicator::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 12px;
+  height: 12px;
+  background-color: #4f46e5;
+  border-radius: 50%;
 }
 
 .empty-state {
