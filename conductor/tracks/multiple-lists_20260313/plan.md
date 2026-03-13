@@ -18,13 +18,13 @@ Implement the core business logic for managing the collection of lists.
 - [x] Task: Write tests for all list management operations. 3ab2f5b
 - [x] Task: Conductor - User Manual Verification 'Phase 2: List Management Logic (CRUD)' (Protocol in workflow.md) 8139352
 
-## Phase 3: UI Implementation - List Switching
+## Phase 3: UI Implementation - List Switching [checkpoint: 0970bf4]
 Build the user interface for viewing and switching between lists.
 
 - [x] Task: Create a Dropdown component (or update header) for list selection. 63439a2
 - [x] Task: Integrate the active list state with the main task view. 63439a2
 - [x] Task: Implement "Restore Last Active List" logic on app startup. 63439a2
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: UI Implementation - List Switching' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: UI Implementation - List Switching' (Protocol in workflow.md) 0970bf4
 
 ## Phase 4: UI Implementation - Management Interface
 Build the interface for editing the list collection.
