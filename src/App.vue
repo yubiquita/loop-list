@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watchEffect, onUnmounted } from 'vue'
+import { ref, computed, watchEffect, onUnmounted, nextTick } from 'vue'
 import type { Task } from './types'
 import TaskItem from './components/TaskItem.vue'
 import { useStorage } from './composables/useStorage'
@@ -23,7 +23,6 @@ const newTaskText = ref('')
 const draggingId = ref<string | null>(null)
 const dropTargetIndex = ref<number | null>(null)
 
-// リスト並び替え用
 const draggingListId = ref<string | null>(null)
 const listDropTargetIndex = ref<number | null>(null)
 
@@ -116,7 +115,7 @@ const selectList = (id: string) => {
 }
 
 const handleCreateList = () => {
-  createList()
+  const newList = createList()
   isListSelectorOpen.value = false
 }
 
@@ -125,9 +124,15 @@ const toggleManageLists = () => {
   editingListId.value = null
 }
 
-const startEditingList = (id: string, currentName: string) => {
+const startEditingList = async (id: string, currentName: string) => {
   editingListId.value = id
   editingListName.value = currentName
+  await nextTick()
+  const input = document.querySelector('.edit-list-input') as HTMLInputElement
+  if (input) {
+    input.focus()
+    input.select()
+  }
 }
 
 const saveListName = (id: string) => {
@@ -293,7 +298,6 @@ const handleListPointerMove = (e: PointerEvent) => {
     const mid = rect.top + rect.height / 2
     let targetIdx = e.clientY < mid ? hoverIdx : hoverIdx + 1
     
-    // 自己位置への挿入は無視
     const fromIdx = state.value.lists.findIndex(l => l.id === draggingListId.value)
     if (targetIdx === fromIdx || targetIdx === fromIdx + 1) {
       listDropTargetIndex.value = null
@@ -334,7 +338,6 @@ onUnmounted(() => {
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
     </button>
 
-    <!-- リストセレクター ドロップダウン -->
     <Transition name="fade">
       <div v-if="isListSelectorOpen" class="list-selector-overlay" @click.stop="isListSelectorOpen = false">
         <div class="list-selector-menu" @click.stop>
@@ -346,7 +349,6 @@ onUnmounted(() => {
           </div>
           <div class="list-items">
             <template v-for="(list, index) in state.lists" :key="list.id">
-              <!-- リスト挿入インジケーター -->
               <div v-if="listDropTargetIndex === index" class="list-drop-indicator"></div>
 
               <div 
@@ -372,11 +374,11 @@ onUnmounted(() => {
                   </div>
                   <span class="list-item-name">{{ list.name }}</span>
                   <div class="list-item-actions" v-if="isManagingLists">
-                    <button class="edit-list-button" @click.stop="startEditingList(list.id, list.name)">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <button class="edit-list-button" @click.stop="startEditingList(list.id, list.name)" aria-label="名前を変更">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
-                    <button class="delete-list-button" @click.stop="handleDeleteList(list.id)">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    <button class="delete-list-button" @click.stop="handleDeleteList(list.id)" aria-label="削除">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
                   </div>
                   <svg v-else-if="list.id === state.activeListId" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="check-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -387,14 +389,12 @@ onUnmounted(() => {
                     v-model="editingListName" 
                     type="text" 
                     class="edit-list-input" 
-                    autoFocus
                     @keyup.enter="saveListName(list.id)"
                     @blur="saveListName(list.id)"
                   />
                 </div>
               </div>
             </template>
-            <!-- 最後のリポジトリ挿入インジケーター -->
             <div v-if="listDropTargetIndex === state.lists.length" class="list-drop-indicator"></div>
           </div>
           <div class="list-selector-footer">
@@ -604,8 +604,8 @@ onUnmounted(() => {
   font-weight: 700;
   color: #4f46e5;
   background-color: #f5f3ff;
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: 10px;
 }
 
 .list-items {
@@ -623,7 +623,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
+  padding: 16px 16px;
   border-radius: 12px;
   color: #475569;
   font-weight: 600;
@@ -650,7 +650,9 @@ onUnmounted(() => {
 
 .list-drag-handle {
   color: #cbd5e1;
-  padding-right: 12px;
+  padding: 8px;
+  margin-left: -8px;
+  margin-right: 8px;
   cursor: grab;
   touch-action: none;
 }
@@ -668,12 +670,12 @@ onUnmounted(() => {
 
 .list-item-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
 .edit-list-button, .delete-list-button {
-  padding: 6px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 10px;
   color: #64748b;
   transition: all 0.2s;
 }
@@ -693,7 +695,7 @@ onUnmounted(() => {
 
 .edit-list-input {
   width: 100%;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-radius: 10px;
   border: 2px solid #4f46e5;
   font-size: 1rem;
@@ -726,7 +728,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px;
+  padding: 16px;
   border-radius: 12px;
   color: #4f46e5;
   font-weight: 700;
