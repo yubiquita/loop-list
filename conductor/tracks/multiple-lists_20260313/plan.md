@@ -21,9 +21,9 @@ Implement the core business logic for managing the collection of lists.
 ## Phase 3: UI Implementation - List Switching
 Build the user interface for viewing and switching between lists.
 
-- [ ] Task: Create a Dropdown component (or update header) for list selection.
-- [ ] Task: Integrate the active list state with the main task view.
-- [ ] Task: Implement "Restore Last Active List" logic on app startup.
+- [x] Task: Create a Dropdown component (or update header) for list selection. 63439a2
+- [x] Task: Integrate the active list state with the main task view. 63439a2
+- [x] Task: Implement "Restore Last Active List" logic on app startup. 63439a2
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: UI Implementation - List Switching' (Protocol in workflow.md)
 
 ## Phase 4: UI Implementation - Management Interface
