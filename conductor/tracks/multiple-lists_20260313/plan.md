@@ -30,7 +30,7 @@ Build the user interface for viewing and switching between lists.
 Build the interface for editing the list collection.
 
 - [x] Task: Implement a management modal or inline editing for renaming and deleting lists. b4b46a7
-- [ ] Task: Add drag-and-drop support for reordering lists in the management view.
+- [x] Task: Add drag-and-drop support for reordering lists in the management view. 16c64a4
 - [ ] Task: Ensure mobile-friendly interactions for all list management features.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: UI Implementation - Management Interface' (Protocol in workflow.md)
 
