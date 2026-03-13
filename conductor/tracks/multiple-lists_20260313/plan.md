@@ -12,7 +12,7 @@ Implement the new data structure to support multiple lists and handle the initia
 Implement the core business logic for managing the collection of lists.
 
 - [x] Task: Implement `createList` functionality with default naming. 24bbe0c
-- [ ] Task: Implement `deleteList` functionality with active list fallback logic.
+- [x] Task: Implement `deleteList` functionality with active list fallback logic. a894ca8
 - [ ] Task: Implement `renameList` functionality.
 - [ ] Task: Implement `reorderLists` functionality.
 - [ ] Task: Write tests for all list management operations.
