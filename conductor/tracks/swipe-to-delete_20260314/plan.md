@@ -11,10 +11,10 @@
 
 ### Phase 1: Preparation & Testing
 - [x] Task: 既存の削除機能に関するテストを確認、または新規作成する。 c3c5730
-- [~] Task: スワイプ操作によるインデント操作の既存テストを確認する。
+- [x] Task: スワイプ操作によるインデント操作の既存テストを確認する。 0fe97b8
 
 ### Phase 2: Refactor Swipe Logic
-- [ ] Task: `TaskItem.vue` の `handleTouchMove` を修正し、Level 0 アイテムでの左スワイプを許可する。
+- [~] Task: `TaskItem.vue` の `handleTouchMove` を修正し、Level 0 アイテムでの左スワイプを許可する。
 - [ ] Task: `TaskItem.vue` の `handleTouchEnd` を修正し、Level 0 アイテムでの深い左スワイプ時に `delete` イベントを emit するようにする。
 - [ ] Task: 視覚的フィードバック（背景）を、Level 0 での左スワイプ時に「削除」を示す内容に動的に変更する。
 
