@@ -373,5 +373,31 @@ describe('App', () => {
 
       wrapper.unmount()
       })
+
+      it('toggles the dropdown when clicking the header', async () => {
+      const wrapper = mount(App)
+
+      // Open
+      await wrapper.find('.header-content').trigger('click')
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(true)
+
+      // Close
+      await wrapper.find('.header-content').trigger('click')
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(false)
+      })
+
+      it('closes the dropdown when selecting a list item', async () => {
+      const wrapper = mount(App)
+
+      // Open
+      await wrapper.find('.header-content').trigger('click')
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(true)
+
+      // Select an item (the first one)
+      await wrapper.find('.list-item').trigger('click')
+      await nextTick()
+
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(false)
+      })
       })
       })
