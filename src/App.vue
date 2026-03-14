@@ -27,13 +27,25 @@ const handleOutsideClick = (e: MouseEvent) => {
   const menu = document.querySelector('.list-selector-menu')
   const header = document.querySelector('.header-content')
   if (menu && !menu.contains(e.target as Node) && header && !header.contains(e.target as Node)) {
+    if (editingListId.value !== null) {
+      // If editing a list name, don't close the menu. 
+      // The blur event on the input will handle saving/closing the edit mode.
+      return
+    }
     isListSelectorOpen.value = false
+    isManagingLists.value = false
   }
 }
 
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
+    if (editingListId.value !== null) {
+      // If editing, first cancel the edit
+      editingListId.value = null
+      return
+    }
     isListSelectorOpen.value = false
+    isManagingLists.value = false
   }
 }
 

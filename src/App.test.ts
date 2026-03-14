@@ -327,6 +327,51 @@ describe('App', () => {
 
       expect(wrapper.find('.list-selector-menu').exists()).toBe(false)
       wrapper.unmount()
-    })
-    })
-    })
+      })
+
+      it('closes both dropdown and management mode when clicking outside in management mode', async () => {
+      const wrapper = mount(App, { attachTo: document.body })
+
+      // Open dropdown
+      await wrapper.find('.header-content').trigger('click')
+      // Enter management mode
+      await wrapper.find('.manage-toggle-button').trigger('click')
+
+      // Click outside
+      await document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+      await nextTick()
+
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(false)
+      // Check if management mode is also closed (we need to open it again to check isManagingLists state, 
+      // or check if '編集' is shown instead of '完了' next time we open)
+
+      await wrapper.find('.header-content').trigger('click')
+      await nextTick()
+      expect(wrapper.find('.manage-toggle-button').text()).toBe('編集')
+
+      wrapper.unmount()
+      })
+
+      it('does not close the dropdown when clicking outside while editing a list name', async () => {
+      const wrapper = mount(App, { attachTo: document.body })
+
+      // Open dropdown
+      await wrapper.find('.header-content').trigger('click')
+      // Enter management mode
+      await wrapper.find('.manage-toggle-button').trigger('click')
+      // Start editing
+      await wrapper.find('.edit-list-button').trigger('click')
+      expect(wrapper.find('.edit-list-input').exists()).toBe(true)
+
+      // Click outside
+      await document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+      await nextTick()
+
+      // Should STILL be open
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(true)
+      expect(wrapper.find('.edit-list-input').exists()).toBe(true)
+
+      wrapper.unmount()
+      })
+      })
+      })
