@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: リスト選択画面で、ドロップダウンの外側をタップするとドロップダウンが閉じるように変更する**
+- [x] **Track: リスト選択画面で、ドロップダウンの外側をタップするとドロップダウンが閉じるように変更する**
 *Link: [./tracks/close_dropdown_20250123/](./tracks/close_dropdown_20250123/)*
 
 ### Archived Tracks
