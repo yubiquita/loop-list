@@ -30,13 +30,13 @@
     - [x] `App.test.ts` に、名前編集中に外側クリックしてもメニューが閉じない挙動のテストを追加。
 - [x] **Task: Conductor - User Manual Verification 'Phase 2: Management Mode Exception Handling' (Protocol in workflow.md)**
 
-### Phase 3: Header Toggle and Item Select Verification
-- [ ] **Task: Verify and fix header toggle**
-    - [ ] ヘッダー（タイトル部分）クリックでメニューの開閉がトグルすることを確認（すでに実装されているはずだが、イベントの伝播等で壊れていないか確認・修正）。
-- [ ] **Task: Verify item selection close**
-    - [ ] リスト項目（編集中以外）をクリックしてリストを切り替えた際、メニューが閉じることを確認・修正。
-- [ ] **Task: Refactor and Cleanup**
-    - [ ] 追加したイベントリスナーが、コンポーネントのアンマウント時（または `isListSelectorOpen` が `false` になった際）に適切にクリーンアップされるよう `onUnmounted` 等を整理。
-- [ ] **Task: Global Smoke Test**
-    - [ ] すべてのテストを実行し、デグレがないか確認。
-- [ ] **Task: Conductor - User Manual Verification 'Phase 3: Header Toggle and Item Select Verification' (Protocol in workflow.md)**
+### Phase 3: Header Toggle and Item Select Verification [checkpoint: 6f1ddfe]
+- [x] **Task: Verify and fix header toggle**
+    - [x] ヘッダー（タイトル部分）クリックでメニューの開閉がトグルすることを確認（すでに実装されているはずだが、イベントの伝播等で壊れていないか確認・修正）。
+- [x] **Task: Verify item selection close**
+    - [x] リスト項目（編集中以外）をクリックしてリストを切り替えた際、メニューが閉じることを確認・修正。
+- [x] **Task: Refactor and Cleanup**
+    - [x] 追加したイベントリスナーが、コンポーネントのアンマウント時（または `isListSelectorOpen` が `false` になった際）に適切にクリーンアップされるよう `onUnmounted` 等を整理。
+- [x] **Task: Global Smoke Test**
+    - [x] すべてのテストを実行し、デグレがないか確認。
+- [x] **Task: Conductor - User Manual Verification 'Phase 3: Header Toggle and Item Select Verification' (Protocol in workflow.md)**
