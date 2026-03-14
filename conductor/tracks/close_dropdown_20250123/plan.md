@@ -20,15 +20,15 @@
     - [x] `App.test.ts` に、Escキー押下でメニューが閉じることのテストを追加。
 - [x] **Task: Conductor - User Manual Verification 'Phase 1: Outside Click and Esc Key Handling' (Protocol in workflow.md)**
 
-### Phase 2: Management Mode Exception Handling
-- [ ] **Task: Handle outside click in Management Mode**
-    - [ ] Phase 1 で追加した外側クリック検知ロジックを修正。
-    - [ ] `isManagingLists` が `true` で、かつ `editingListId` が `null` の場合（管理モード中だが編集中ではない）、外側クリックでメニューを閉じると同時に管理モードも解除する。
-    - [ ] `editingListId` が `null` ではない場合（名前編集中）、外側クリックでメニューを**閉じず**、名前入力の確定（blurイベントに委譲、または明示的に保存）のみを行うように挙動を制御。
-- [ ] **Task: Write tests for Phase 2**
-    - [ ] `App.test.ts` に、管理モード中（非編集中）の外側クリック挙動のテストを追加。
-    - [ ] `App.test.ts` に、名前編集中に外側クリックしてもメニューが閉じない挙動のテストを追加。
-- [ ] **Task: Conductor - User Manual Verification 'Phase 2: Management Mode Exception Handling' (Protocol in workflow.md)**
+### Phase 2: Management Mode Exception Handling [checkpoint: 412f96b]
+- [x] **Task: Handle outside click in Management Mode**
+    - [x] Phase 1 で追加した外側クリック検知ロジックを修正。
+    - [x] `isManagingLists` が `true` で、かつ `editingListId` が `null` の場合（管理モード中だが編集中ではない）、外側クリックでメニューを閉じると同時に管理モードも解除する。
+    - [x] `editingListId` が `null` ではない場合（名前編集中）、外側クリックでメニューを**閉じず**、名前入力の確定（blurイベントに委譲、または明示的に保存）のみを行うように挙動を制御。
+- [x] **Task: Write tests for Phase 2**
+    - [x] `App.test.ts` に、管理モード中（非編集中）の外側クリック挙動のテストを追加。
+    - [x] `App.test.ts` に、名前編集中に外側クリックしてもメニューが閉じない挙動のテストを追加。
+- [x] **Task: Conductor - User Manual Verification 'Phase 2: Management Mode Exception Handling' (Protocol in workflow.md)**
 
 ### Phase 3: Header Toggle and Item Select Verification
 - [ ] **Task: Verify and fix header toggle**
