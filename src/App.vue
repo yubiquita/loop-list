@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watchEffect, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watchEffect, onUnmounted, nextTick, watch } from 'vue'
 import type { Task } from './types'
 import TaskItem from './components/TaskItem.vue'
 import { useStorage } from './composables/useStorage'
@@ -14,7 +14,39 @@ const tasks = computed({
 })
 
 const isAdding = ref(false)
+const addTaskInput = ref<HTMLInputElement | null>(null)
+
+const toggleAddTask = async () => {
+  isAdding.value = true
+  await nextTick()
+  addTaskInput.value?.focus()
+}
 const isListSelectorOpen = ref(false)
+
+const handleOutsideClick = (e: MouseEvent) => {
+  const menu = document.querySelector('.list-selector-menu')
+  const header = document.querySelector('.header-content')
+  if (menu && !menu.contains(e.target as Node) && header && !header.contains(e.target as Node)) {
+    isListSelectorOpen.value = false
+  }
+}
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    isListSelectorOpen.value = false
+  }
+}
+
+watch(isListSelectorOpen, (open) => {
+  if (open) {
+    window.addEventListener('mousedown', handleOutsideClick)
+    window.addEventListener('keydown', handleKeyDown)
+  } else {
+    window.removeEventListener('mousedown', handleOutsideClick)
+    window.removeEventListener('keydown', handleKeyDown)
+  }
+})
+
 const isManagingLists = ref(false)
 const editingListId = ref<string | null>(null)
 const editingListName = ref('')
@@ -116,7 +148,8 @@ const selectList = (id: string) => {
 
 const handleCreateList = () => {
   const newList = createList()
-  isListSelectorOpen.value = false
+  isManagingLists.value = true
+  startEditingList(newList.id, newList.name)
 }
 
 const toggleManageLists = () => {
@@ -311,6 +344,8 @@ const handleListPointerMove = (e: PointerEvent) => {
 }
 
 onUnmounted(() => {
+  window.removeEventListener('mousedown', handleOutsideClick)
+  window.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('pointermove', handlePointerMove)
   window.removeEventListener('pointerup', handlePointerUp)
   window.removeEventListener('pointercancel', handlePointerUp)
@@ -441,9 +476,9 @@ onUnmounted(() => {
     <div class="add-task-overlay" @click="isAdding = false"></div>
     <form @submit.prevent="addTask" class="add-task-form">
       <input
+        ref="addTaskInput"
         v-model="newTaskText"
         type="text"
-        autoFocus
         placeholder="新しいルーティンを追加..."
         class="add-task-input"
         aria-label="新しいタスク名"
@@ -462,7 +497,7 @@ onUnmounted(() => {
   </div>
 
   <div v-if="!isAdding" class="fab-container">
-    <button @click="isAdding = true" class="fab" aria-label="新しいタスクを追加">
+    <button @click="toggleAddTask" class="fab" aria-label="新しいタスクを追加">
       <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
     </button>
   </div>

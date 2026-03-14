@@ -103,6 +103,21 @@ describe('App', () => {
       expect(wrapper.find('.add-task-form').exists()).toBe(true)
     })
 
+    it('focuses the input field when FAB is clicked', async () => {
+      const wrapper = mount(App, {
+        attachTo: document.body
+      })
+      const fab = wrapper.find('.fab')
+      
+      await fab.trigger('click')
+      await nextTick()
+      
+      const input = wrapper.find('.add-task-input').element as HTMLInputElement
+      expect(document.activeElement).toBe(input)
+      
+      wrapper.unmount()
+    })
+
     it('adds a new task when form is submitted', async () => {
       const wrapper = mount(App)
       await wrapper.find('.fab').trigger('click')
@@ -128,16 +143,21 @@ describe('App', () => {
       expect(wrapper.find('.list-selector-menu').exists()).toBe(true)
     })
 
-    it('creates a new list from selector', async () => {
-      const wrapper = mount(App)
+    it('creates a new list from selector and focuses the input', async () => {
+      const wrapper = mount(App, {
+        attachTo: document.body
+      })
       await wrapper.find('.header-content').trigger('click')
       await nextTick()
       
       await wrapper.find('.create-list-button').trigger('click')
       await nextTick()
       
-      expect(wrapper.find('.title').text()).toBe('新しいリスト')
-      expect(wrapper.findAll('.task-item').length).toBe(0)
+      const input = wrapper.find('.edit-list-input').element as HTMLInputElement
+      expect(input).toBeTruthy()
+      expect(document.activeElement).toBe(input)
+      
+      wrapper.unmount()
     })
 
     it('renames a list through the management UI', async () => {
@@ -174,9 +194,8 @@ describe('App', () => {
       
       expect(wrapper.find('.title').text()).toBe('新しいリスト')
       
-      await wrapper.find('.header-content').trigger('click')
-      await nextTick()
-      await wrapper.find('.manage-toggle-button').trigger('click')
+      // Save the list name (blur the input) to show the list item buttons
+      await wrapper.find('.edit-list-input').trigger('blur')
       await nextTick()
       
       // Delete the active list (which is the new one)
@@ -214,6 +233,10 @@ describe('App', () => {
       expect(wrapper.find('.title').text()).toBe('新しいリスト')
       expect(wrapper.findAll('.task-item').length).toBe(0)
       
+      // Close list selector to see FAB
+      await wrapper.find('.list-selector-overlay').trigger('click')
+      await nextTick()
+      
       // List 2: Add a task
       await wrapper.find('.fab').trigger('click')
       await nextTick()
@@ -227,6 +250,11 @@ describe('App', () => {
       // Switch back to List 1
       await wrapper.find('.header-content').trigger('click')
       await nextTick()
+      
+      // We are still in management mode from handleCreateList, so we need to switch it off to select
+      await wrapper.find('.manage-toggle-button').trigger('click')
+      await nextTick()
+      
       const listItems = wrapper.findAll('.list-item')
       await listItems[0].trigger('click') // Routine list
       await nextTick()
@@ -249,7 +277,7 @@ describe('App', () => {
       setItemSpy.mockRestore()
     })
 
-    it('loads state from localStorage on initialization', async () => {
+    it('saves state to localStorage on initialization', async () => {
       const mockState = {
         lists: [
           { id: 'l1', name: 'Mock List', tasks: [{ id: 'm1', text: 'Mock Task', completed: true, indent: 0 }] }
@@ -257,16 +285,48 @@ describe('App', () => {
         activeListId: 'l1'
       }
       localStorageMock.setItem('loop-list-state', JSON.stringify(mockState))
-      
+
       const wrapper = mount(App)
       await nextTick()
-      
+
       const taskItems = wrapper.findAll('.task-item')
       expect(taskItems.length).toBe(1)
       expect(taskItems[0].text()).toContain('Mock Task')
       expect(taskItems[0].classes()).toContain('is-completed')
-      
+
       vi.restoreAllMocks()
     })
-  })
-})
+    })
+
+    describe('Dropdown Close Behavior', () => {
+    it('closes the dropdown when clicking outside', async () => {
+      const wrapper = mount(App, { attachTo: document.body })
+
+      // Open dropdown
+      await wrapper.find('.header-content').trigger('click')
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(true)
+
+      // Click outside (e.g., on the task list)
+      await document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+      await nextTick()
+
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(false)
+      wrapper.unmount()
+    })
+
+    it('closes the dropdown when pressing Esc key', async () => {
+      const wrapper = mount(App, { attachTo: document.body })
+
+      // Open dropdown
+      await wrapper.find('.header-content').trigger('click')
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(true)
+
+      // Press Esc
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+      await nextTick()
+
+      expect(wrapper.find('.list-selector-menu').exists()).toBe(false)
+      wrapper.unmount()
+    })
+    })
+    })
