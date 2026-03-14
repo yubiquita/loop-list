@@ -9,16 +9,16 @@
 
 ## Implementation Steps
 
-### Phase 1: Outside Click and Esc Key Handling
-- [ ] **Task: Implement outside click detection**
-    - [ ] `App.vue` にて、`isListSelectorOpen` が `true` の時のみ有効になる、ドロップダウン外クリック（mousedown または click）のイベントリスナーを追加。
-    - [ ] メニュー外のクリックを検知した際、`isListSelectorOpen = false` にするロジックを実装。
-- [ ] **Task: Implement Esc key handling**
-    - [ ] `App.vue` にて、`keydown` イベントリスナーを追加し、`Esc` キーが押下された際に `isListSelectorOpen = false` にするロジックを実装。
-- [ ] **Task: Write tests for Phase 1**
-    - [ ] `App.test.ts` に、メニュー外クリックでメニューが閉じることのテストを追加。
-    - [ ] `App.test.ts` に、Escキー押下でメニューが閉じることのテストを追加。
-- [ ] **Task: Conductor - User Manual Verification 'Phase 1: Outside Click and Esc Key Handling' (Protocol in workflow.md)**
+### Phase 1: Outside Click and Esc Key Handling [checkpoint: b2f9599]
+- [x] **Task: Implement outside click detection**
+    - [x] `App.vue` にて、`isListSelectorOpen` が `true` の時のみ有効になる、ドロップダウン外クリック（mousedown または click）のイベントリスナーを追加。
+    - [x] メニュー外のクリックを検知した際、`isListSelectorOpen = false` にするロジックを実装。
+- [x] **Task: Implement Esc key handling**
+    - [x] `App.vue` にて、`keydown` イベントリスナーを追加し、`Esc` キーが押下された際に `isListSelectorOpen = false` にするロジックを実装。
+- [x] **Task: Write tests for Phase 1**
+    - [x] `App.test.ts` に、メニュー外クリックでメニューが閉じることのテストを追加。
+    - [x] `App.test.ts` に、Escキー押下でメニューが閉じることのテストを追加。
+- [x] **Task: Conductor - User Manual Verification 'Phase 1: Outside Click and Esc Key Handling' (Protocol in workflow.md)**
 
 ### Phase 2: Management Mode Exception Handling
 - [ ] **Task: Handle outside click in Management Mode**
