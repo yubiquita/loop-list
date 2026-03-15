@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watchEffect, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, onUnmounted, nextTick, watch } from 'vue'
 import type { Task } from './types'
 import TaskItem from './components/TaskItem.vue'
 import { useStorage } from './composables/useStorage'

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useStorage } from './useStorage'
 
 // LocalStorage mock
@@ -54,7 +54,7 @@ describe('useStorage', () => {
   })
 
   it('saves state to localStorage when changes occur', async () => {
-    const setItemSpy = vi.spyOn(localStorageMock, 'setItem')
+    vi.spyOn(localStorageMock, 'setItem')
     const { state } = useStorage()
     
     // Modification
